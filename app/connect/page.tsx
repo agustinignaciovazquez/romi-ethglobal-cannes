@@ -11,9 +11,17 @@ import { getWalletSetupData } from "@/lib/utils"
 
 export default function ConnectPage() {
   const [isConnecting, setIsConnecting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const { connectWallet, state, setHasSetup, setActivePreference, addPreference } = useWallet()
-  const { login, authenticated, user } = usePrivy()
+  const { login, authenticated, user, ready } = usePrivy()
   const router = useRouter()
+
+  // Wait for Privy to be ready and check authentication status
+  useEffect(() => {
+    if (ready) {
+      setIsLoading(false)
+    }
+  }, [ready])
 
   // Check setup status and update context
   useEffect(() => {
@@ -63,6 +71,15 @@ export default function ConnectPage() {
     } finally {
       setIsConnecting(false)
     }
+  }
+
+  // Show loading while Privy is initializing
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
   return (

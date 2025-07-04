@@ -5,6 +5,9 @@ import { formatAddress } from "@/lib/utils"
 
 export function BalanceHeader() {
   const { state } = useWallet()
+  
+  // Get the active preference (the most recent one or the one that matches current state)
+  const activePreference = state.preferences.length > 0 ? state.preferences[state.preferences.length - 1] : null
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -27,21 +30,21 @@ export function BalanceHeader() {
           <p className="text-sm text-gray-500 font-medium">Total Balance</p>
           <p className="text-3xl font-bold text-gray-900">
             ${state.totalBalance}
-            {state.preferences && (
-              <span className="text-lg font-normal text-gray-500 ml-2">{state.preferences.selectedToken.name}</span>
+            {activePreference && (
+              <span className="text-lg font-normal text-gray-500 ml-2">{activePreference.selectedToken.name}</span>
             )}
           </p>
         </div>
 
         {/* Destination Chain */}
-        {state.preferences && (
+        {activePreference && (
           <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
             <img
-              src={state.preferences.selectedChain.imageUrl || "/placeholder.svg"}
-              alt={state.preferences.selectedChain.name}
+              src={activePreference.selectedChain.imageUrl || "/placeholder.svg"}
+              alt={activePreference.selectedChain.name}
               className="w-4 h-4 rounded-full"
             />
-            <span>on {state.preferences.selectedChain.name}</span>
+            <span>on {activePreference.selectedChain.name}</span>
           </div>
         )}
       </div>

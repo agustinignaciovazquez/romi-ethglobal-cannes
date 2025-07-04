@@ -6,26 +6,46 @@ import { ArrowLeft, Save, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownSelect } from "@/components/dropdown-select"
 import { useWallet } from "@/contexts/wallet-context"
+import { usePrivy } from "@privy-io/react-auth"
 import { tokens, chains } from "@/lib/data"
 import type { Token, Chain } from "@/types"
+import { personalSign, deploySmartWallet, addUserPreference } from "@/lib/utils"
 
 export default function SettingsPage() {
-  const { state, setPreferences } = useWallet()
+  const { state, addPreference } = useWallet()
+  const { user } = usePrivy()
   const router = useRouter()
 
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(state.preferences?.selectedToken)
-  const [selectedChain, setSelectedChain] = useState<Chain | undefined>(state.preferences?.selectedChain)
+  // Get the active preference (most recent one)
+  const activePreference = state.preferences.length > 0 ? state.preferences[state.preferences.length - 1] : null
+
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(activePreference?.selectedToken)
+  const [selectedChain, setSelectedChain] = useState<Chain | undefined>(activePreference?.selectedChain)
   const [isSaving, setIsSaving] = useState(false)
 
   const handleSave = async () => {
-    if (!selectedToken || !selectedChain) return
+    if (!selectedToken || !selectedChain || !user?.wallet?.address || !state.userWalletAddress) return
 
     setIsSaving(true)
     try {
-      // Simulate save delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Step 1: Personal sign for verification
+      const signature = await personalSign("Update romi wallet preferences", state.userWalletAddress)
 
-      setPreferences({ selectedToken, selectedChain })
+      // Step 2: Deploy new smart wallet for this preference set
+      const { address, ensName } = await deploySmartWallet(state.userWalletAddress)
+
+      // Step 3: Create new preference with new smart wallet
+      const newPreference = addUserPreference(user.wallet.address, {
+        selectedToken,
+        selectedChain,
+        smartWalletAddress: address,
+        ensName,
+        setupSignature: signature,
+      })
+
+      // Step 4: Add preference to context
+      addPreference(newPreference)
+
       router.push("/deposit")
     } catch (error) {
       console.error("Failed to save settings:", error)
@@ -35,7 +55,7 @@ export default function SettingsPage() {
   }
 
   const hasChanges =
-    selectedToken !== state.preferences?.selectedToken || selectedChain !== state.preferences?.selectedChain
+    selectedToken !== activePreference?.selectedToken || selectedChain !== activePreference?.selectedChain
 
   return (
     <div className="min-h-[calc(100vh-4rem)] p-4">
@@ -118,30 +138,34 @@ export default function SettingsPage() {
         {state.preferences && (
           <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Current Settings</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Token:</span>
-                <div className="flex items-center gap-2">
-                  <img
-                    src={state.preferences.selectedToken.imageUrl || "/placeholder.svg"}
-                    alt={state.preferences.selectedToken.name}
-                    className="w-4 h-4 rounded-full"
-                  />
-                  <span className="font-medium">{state.preferences.selectedToken.name}</span>
+            {activePreference ? (
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Token:</span>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={activePreference.selectedToken.imageUrl || "/placeholder.svg"}
+                      alt={activePreference.selectedToken.name}
+                      className="w-4 h-4 rounded-full"
+                    />
+                    <span className="font-medium">{activePreference.selectedToken.name}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Chain:</span>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={activePreference.selectedChain.imageUrl || "/placeholder.svg"}
+                      alt={activePreference.selectedChain.name}
+                      className="w-4 h-4 rounded-full"
+                    />
+                    <span className="font-medium">{activePreference.selectedChain.name}</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Chain:</span>
-                <div className="flex items-center gap-2">
-                  <img
-                    src={state.preferences.selectedChain.imageUrl || "/placeholder.svg"}
-                    alt={state.preferences.selectedChain.name}
-                    className="w-4 h-4 rounded-full"
-                  />
-                  <span className="font-medium">{state.preferences.selectedChain.name}</span>
-                </div>
-              </div>
-            </div>
+            ) : (
+              <p className="text-sm text-gray-500">No preferences set</p>
+            )}
           </div>
         )}
       </div>

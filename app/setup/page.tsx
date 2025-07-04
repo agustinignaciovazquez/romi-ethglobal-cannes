@@ -15,9 +15,17 @@ export default function SetupPage() {
   const [selectedToken, setSelectedToken] = useState<Token | undefined>()
   const [selectedChain, setSelectedChain] = useState<Chain | undefined>()
   const [isDeploying, setIsDeploying] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const { state, addPreference, setHasSetup } = useWallet()
-  const { authenticated, user } = usePrivy()
+  const { authenticated, user, ready } = usePrivy()
   const router = useRouter()
+
+  // Wait for Privy to be ready
+  useEffect(() => {
+    if (ready) {
+      setIsLoading(false)
+    }
+  }, [ready])
 
   // Redirect to connect if not authenticated
   useEffect(() => {
@@ -72,6 +80,15 @@ export default function SetupPage() {
   }
 
   const canContinue = selectedToken && selectedChain && !isDeploying
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   // Show loading while checking authentication
   if (!authenticated) {

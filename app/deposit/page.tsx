@@ -4,13 +4,18 @@ import { ArrowRight, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CopyButton } from "@/components/copy-button"
 import { useWallet } from "@/contexts/wallet-context"
-import { formatAddress } from "@/lib/utils"
+import { usePrivy } from "@privy-io/react-auth"
+import { formatAddress, getActivePreference } from "@/lib/utils"
 
 export default function DepositPage() {
   const { state } = useWallet()
+  const { user } = usePrivy()
   const router = useRouter()
 
-  if (!state.preferences || !state.smartWalletAddress) {
+  // Get the active preference
+  const activePreference = user?.wallet?.address ? getActivePreference(user.wallet.address) : null
+
+  if (!activePreference || !state.smartWalletAddress) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -25,7 +30,7 @@ export default function DepositPage() {
         <div className="text-center space-y-3">
           <h1 className="text-2xl font-bold text-gray-900">Your romi wallet is ready!</h1>
           <p className="text-gray-600">
-            Send any {state.preferences.selectedToken.name} to this address and we'll handle the rest.
+            Send any {activePreference.selectedToken.name} to this address and we'll handle the rest.
           </p>
         </div>
 
@@ -53,8 +58,8 @@ export default function DepositPage() {
                 <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-blue-900">
-                    Deposit any {state.preferences.selectedToken.name} here — we'll handle bridging to{" "}
-                    {state.preferences.selectedChain.name}.
+                    Deposit any {activePreference.selectedToken.name} here — we'll handle bridging to{" "}
+                    {activePreference.selectedChain.name}.
                   </p>
                   <p className="text-xs text-blue-700">
                     This wallet is where all tokens will be deposited, swapped, and bridged automatically.
@@ -66,18 +71,18 @@ export default function DepositPage() {
             {/* Destination Summary */}
             <div className="flex items-center justify-center gap-3 p-4 bg-gray-50 rounded-xl">
               <img
-                src={state.preferences.selectedToken.imageUrl || "/placeholder.svg"}
-                alt={state.preferences.selectedToken.name}
+                src={activePreference.selectedToken.imageUrl || "/placeholder.svg"}
+                alt={activePreference.selectedToken.name}
                 className="w-6 h-6 rounded-full"
               />
-              <span className="text-sm font-medium text-gray-900">{state.preferences.selectedToken.name}</span>
+              <span className="text-sm font-medium text-gray-900">{activePreference.selectedToken.name}</span>
               <ArrowRight className="w-4 h-4 text-gray-400" />
               <img
-                src={state.preferences.selectedChain.imageUrl || "/placeholder.svg"}
-                alt={state.preferences.selectedChain.name}
+                src={activePreference.selectedChain.imageUrl || "/placeholder.svg"}
+                alt={activePreference.selectedChain.name}
                 className="w-6 h-6 rounded-full"
               />
-              <span className="text-sm font-medium text-gray-900">{state.preferences.selectedChain.name}</span>
+              <span className="text-sm font-medium text-gray-900">{activePreference.selectedChain.name}</span>
             </div>
           </div>
 
