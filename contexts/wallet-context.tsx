@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useReducer, useEffect } from "react"
+import { createContext, useContext, useReducer, useEffect, useCallback } from "react"
 import type { WalletState, UserPreferences, Transaction } from "@/types"
 import { mockTransactions } from "@/lib/data"
 
@@ -92,30 +92,30 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   const contextValue: WalletContextType = {
     state,
-    connectWallet: (address: string) => {
+    connectWallet: useCallback((address: string) => {
       dispatch({ type: "CONNECT_WALLET", payload: address })
-    },
-    setSmartWallet: (address: string, ensName: string) => {
+    }, []),
+    setSmartWallet: useCallback((address: string, ensName: string) => {
       dispatch({ type: "SET_SMART_WALLET", payload: { address, ensName } })
-    },
-    setPreferences: (preferences: UserPreferences) => {
+    }, []),
+    setPreferences: useCallback((preferences: UserPreferences) => {
       dispatch({ type: "SET_PREFERENCES", payload: preferences })
-    },
-    setHasSetup: (hasSetup: boolean) => {
+    }, []),
+    setHasSetup: useCallback((hasSetup: boolean) => {
       dispatch({ type: "SET_HAS_SETUP", payload: hasSetup })
-    },
-    addTransaction: (transaction: Transaction) => {
+    }, []),
+    addTransaction: useCallback((transaction: Transaction) => {
       dispatch({ type: "ADD_TRANSACTION", payload: transaction })
-    },
-    updateBalance: (balance: string) => {
+    }, []),
+    updateBalance: useCallback((balance: string) => {
       dispatch({ type: "UPDATE_BALANCE", payload: balance })
-    },
-    logout: () => {
+    }, []),
+    logout: useCallback(() => {
       dispatch({ type: "RESET" })
-    },
-    reset: () => {
+    }, []),
+    reset: useCallback(() => {
       dispatch({ type: "RESET" })
-    },
+    }, []),
   }
 
   return <WalletContext.Provider value={contextValue}>{children}</WalletContext.Provider>

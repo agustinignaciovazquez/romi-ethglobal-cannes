@@ -23,7 +23,7 @@ export default function ConnectPage() {
         router.push("/setup")
       }
     }
-  }, [authenticated, user, connectWallet, state.hasSetup, router])
+  }, [authenticated, user?.wallet?.address, state.hasSetup, router])
 
   const handleConnect = async () => {
     setIsConnecting(true)

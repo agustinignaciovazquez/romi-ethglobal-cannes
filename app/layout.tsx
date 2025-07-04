@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "romi - All roads lead to romi",
   description: "A no-jargon, no-hassle multichain ERC-20 wallet for crypto beginners",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
