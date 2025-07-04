@@ -1,17 +1,68 @@
 "use client"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Plus, TrendingUp, ArrowUpRight, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BalanceHeader } from "@/components/balance-header"
 import { TxList } from "@/components/tx-list"
 import { useWallet } from "@/contexts/wallet-context"
+import { usePrivy } from "@privy-io/react-auth"
+import { hasWalletSetup, getActivePreference } from "@/lib/utils"
 
 export default function DashboardPage() {
-  const { state } = useWallet()
+  const { state, connectWallet, setHasSetup, addPreference } = useWallet()
+  const { authenticated, user, ready } = usePrivy()
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  if (!state.userWalletAddress || !state.hasSetup) {
+  // Wait for Privy to be ready
+  useEffect(() => {
+    if (ready) {
+      setIsLoading(false)
+    }
+  }, [ready])
+
+  // Check authentication and setup wallet context
+  useEffect(() => {
+    if (ready && !authenticated) {
+      router.push("/connect")
+      return
+    }
+
+    if (authenticated && user?.wallet?.address) {
+      const walletAddress = user.wallet.address.toLowerCase()
+      
+      // Connect wallet in context if not already connected
+      if (!state.userWalletAddress) {
+        connectWallet(user.wallet.address)
+      }
+
+      // Check setup status
+      const hasSetup = hasWalletSetup(walletAddress)
+      
+      if (!hasSetup) {
+        router.push("/setup")
+        return
+      }
+
+      // Update setup status in context
+      if (hasSetup !== state.hasSetup) {
+        setHasSetup(hasSetup)
+      }
+
+      // Load active preference if exists and not already loaded
+      if (hasSetup && state.preferences.length === 0) {
+        const activePreference = getActivePreference(walletAddress)
+        if (activePreference) {
+          addPreference(activePreference)
+        }
+      }
+    }
+  }, [ready, authenticated, user?.wallet?.address, router, state.userWalletAddress, state.hasSetup, state.preferences.length, connectWallet, setHasSetup, addPreference])
+
+  // Show loading while Privy is initializing or checking setup
+  if (isLoading || !ready || !authenticated || !state.userWalletAddress || !state.hasSetup) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

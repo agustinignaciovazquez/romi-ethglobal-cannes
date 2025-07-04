@@ -27,22 +27,28 @@ export default function ConnectPage() {
   useEffect(() => {
     if (authenticated && user?.wallet?.address) {
       const walletAddress = user.wallet.address.toLowerCase()
+      
+      // Connect wallet in context if not already connected
+      if (!state.userWalletAddress) {
+        connectWallet(user.wallet.address)
+      }
+
       const hasSetup = hasWalletSetup(walletAddress)
       
       if (hasSetup !== state.hasSetup) {
         setHasSetup(hasSetup)
       }
 
-      // Load active preference if exists
-      if (hasSetup) {
+      // Load active preference if exists and not already loaded
+      if (hasSetup && state.preferences.length === 0) {
         const activePreference = getActivePreference(walletAddress)
-        if (activePreference && state.preferences.length === 0) {
+        if (activePreference) {
           // Load preferences from storage into state
           addPreference(activePreference)
         }
       }
     }
-  }, [authenticated, user?.wallet?.address, setHasSetup, state.hasSetup, state.preferences.length, addPreference])
+  }, [authenticated, user?.wallet?.address, state.userWalletAddress, setHasSetup, state.hasSetup, state.preferences.length, addPreference, connectWallet])
 
   // Redirect based on authentication and setup status
   useEffect(() => {

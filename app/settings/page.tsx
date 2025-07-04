@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Save, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,12 +9,56 @@ import { useWallet } from "@/contexts/wallet-context"
 import { usePrivy } from "@privy-io/react-auth"
 import { tokens, chains } from "@/lib/data"
 import type { Token, Chain } from "@/types"
-import { personalSign, deploySmartWallet, addUserPreference } from "@/lib/utils"
+import { personalSign, deploySmartWallet, addUserPreference, hasWalletSetup, getActivePreference } from "@/lib/utils"
 
 export default function SettingsPage() {
-  const { state, addPreference } = useWallet()
-  const { user } = usePrivy()
+  const { state, addPreference, connectWallet, setHasSetup } = useWallet()
+  const { authenticated, user, ready } = usePrivy()
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+
+  // Wait for Privy to be ready
+  useEffect(() => {
+    if (ready) {
+      setIsLoading(false)
+    }
+  }, [ready])
+
+  // Check authentication and setup
+  useEffect(() => {
+    if (ready && !authenticated) {
+      router.push("/connect")
+      return
+    }
+
+    if (authenticated && user?.wallet?.address) {
+      const walletAddress = user.wallet.address.toLowerCase()
+      
+      // Connect wallet in context if not already connected
+      if (!state.userWalletAddress) {
+        connectWallet(user.wallet.address)
+      }
+
+      const hasSetup = hasWalletSetup(walletAddress)
+      if (!hasSetup) {
+        router.push("/setup")
+        return
+      }
+
+      // Update setup status in context
+      if (hasSetup !== state.hasSetup) {
+        setHasSetup(hasSetup)
+      }
+
+      // Load active preference if exists and not already loaded
+      if (hasSetup && state.preferences.length === 0) {
+        const activePreference = getActivePreference(walletAddress)
+        if (activePreference) {
+          addPreference(activePreference)
+        }
+      }
+    }
+  }, [ready, authenticated, user?.wallet?.address, state.userWalletAddress, state.hasSetup, state.preferences.length, router, connectWallet, setHasSetup, addPreference])
 
   // Get the active preference (most recent one)
   const activePreference = state.preferences.length > 0 ? state.preferences[state.preferences.length - 1] : null
@@ -22,6 +66,23 @@ export default function SettingsPage() {
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(activePreference?.selectedToken)
   const [selectedChain, setSelectedChain] = useState<Chain | undefined>(activePreference?.selectedChain)
   const [isSaving, setIsSaving] = useState(false)
+
+  // Update state when activePreference changes
+  useEffect(() => {
+    if (activePreference) {
+      setSelectedToken(activePreference.selectedToken)
+      setSelectedChain(activePreference.selectedChain)
+    }
+  }, [activePreference])
+
+  // Show loading while checking authentication and setup
+  if (isLoading || !ready || !authenticated || !state.userWalletAddress || !state.hasSetup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   const handleSave = async () => {
     if (!selectedToken || !selectedChain || !user?.wallet?.address || !state.userWalletAddress) return

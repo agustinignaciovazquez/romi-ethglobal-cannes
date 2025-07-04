@@ -16,7 +16,7 @@ export default function SetupPage() {
   const [selectedChain, setSelectedChain] = useState<Chain | undefined>()
   const [isDeploying, setIsDeploying] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const { state, addPreference, setHasSetup } = useWallet()
+  const { state, addPreference, setHasSetup, connectWallet } = useWallet()
   const { authenticated, user, ready } = usePrivy()
   const router = useRouter()
 
@@ -29,22 +29,28 @@ export default function SetupPage() {
 
   // Redirect to connect if not authenticated
   useEffect(() => {
-    if (!authenticated) {
+    if (ready && !authenticated) {
       router.push("/connect")
       return
     }
-  }, [authenticated, router])
+  }, [ready, authenticated, router])
 
-  // Redirect to dashboard if already setup
+  // Check wallet connection and setup status
   useEffect(() => {
     if (authenticated && user?.wallet?.address) {
       const walletAddress = user.wallet.address.toLowerCase()
+      
+      // Connect wallet in context if not already connected
+      if (!state.userWalletAddress) {
+        connectWallet(user.wallet.address)
+      }
+
       const hasSetup = hasWalletSetup(walletAddress)
       if (hasSetup) {
         router.push("/dashboard")
       }
     }
-  }, [router, authenticated, user?.wallet?.address])
+  }, [authenticated, user?.wallet?.address, state.userWalletAddress, router, connectWallet])
 
   const handleContinue = async () => {
     if (!selectedToken || !selectedChain || !state.userWalletAddress || !user?.wallet?.address) return
