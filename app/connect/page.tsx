@@ -11,22 +11,30 @@ import { getWalletSetupData } from "@/lib/utils"
 
 export default function ConnectPage() {
   const [isConnecting, setIsConnecting] = useState(false)
-  const { connectWallet, state, setHasSetup } = useWallet()
+  const { connectWallet, state, setHasSetup, setActivePreference, addPreference } = useWallet()
   const { login, authenticated, user } = usePrivy()
   const router = useRouter()
 
-  // Check setup status from wallet setup map and update context
+  // Check setup status and update context
   useEffect(() => {
     if (authenticated && user?.wallet?.address) {
       const walletAddress = user.wallet.address.toLowerCase()
-      const setupData = getWalletSetupData(walletAddress)
-      const hasSetup = setupData?.isSetupCompleted || false
+      const hasSetup = hasWalletSetup(walletAddress)
       
       if (hasSetup !== state.hasSetup) {
         setHasSetup(hasSetup)
       }
+
+      // Load active preference if exists
+      if (hasSetup) {
+        const activePreference = getActivePreference(walletAddress)
+        if (activePreference && state.preferences.length === 0) {
+          // Load preferences from storage into state
+          addPreference(activePreference)
+        }
+      }
     }
-  }, [authenticated, user?.wallet?.address, setHasSetup, state.hasSetup])
+  }, [authenticated, user?.wallet?.address, setHasSetup, state.hasSetup, state.preferences.length, addPreference])
 
   // Redirect based on authentication and setup status
   useEffect(() => {
@@ -35,8 +43,7 @@ export default function ConnectPage() {
       
       // Check if user has completed setup for this specific wallet
       const walletAddress = user.wallet.address.toLowerCase()
-      const setupData = getWalletSetupData(walletAddress)
-      const hasSetup = setupData?.isSetupCompleted || false
+      const hasSetup = hasWalletSetup(walletAddress)
       
       if (hasSetup) {
         router.push("/dashboard")

@@ -9,13 +9,13 @@ import { useWallet } from "@/contexts/wallet-context"
 import { usePrivy } from "@privy-io/react-auth"
 import { tokens, chains } from "@/lib/data"
 import type { Token, Chain } from "@/types"
-import { personalSign, deploySmartWallet, getWalletSetupData, updateWalletSetupData } from "@/lib/utils"
+import { personalSign, deploySmartWallet, hasWalletSetup, addUserPreference } from "@/lib/utils"
 
 export default function SetupPage() {
   const [selectedToken, setSelectedToken] = useState<Token | undefined>()
   const [selectedChain, setSelectedChain] = useState<Chain | undefined>()
   const [isDeploying, setIsDeploying] = useState(false)
-  const { state, setPreferences, setSmartWallet, setHasSetup } = useWallet()
+  const { state, addPreference, setHasSetup } = useWallet()
   const { authenticated, user } = usePrivy()
   const router = useRouter()
 
@@ -31,9 +31,7 @@ export default function SetupPage() {
   useEffect(() => {
     if (authenticated && user?.wallet?.address) {
       const walletAddress = user.wallet.address.toLowerCase()
-      const setupData = getWalletSetupData(walletAddress)
-      const hasSetup = setupData?.isSetupCompleted || false
-      
+      const hasSetup = hasWalletSetup(walletAddress)
       if (hasSetup) {
         router.push("/dashboard")
       }
@@ -51,21 +49,18 @@ export default function SetupPage() {
       // Step 2: Deploy smart wallet and assign ENS
       const { address, ensName } = await deploySmartWallet(state.userWalletAddress)
 
-      // Step 3: Save preferences and wallet info
-      setPreferences({ selectedToken, selectedChain })
-      setSmartWallet(address, ensName)
-      setHasSetup(true)
-
-      // Step 4: Save complete setup data to the wallet setup map
-      const walletAddress = user.wallet.address.toLowerCase()
-      updateWalletSetupData(walletAddress, {
-        isSetupCompleted: true,
-        setupSignature: signature,
+      // Step 3: Create new preference with all setup data
+      const newPreference = addUserPreference(user.wallet.address, {
+        selectedToken,
+        selectedChain,
         smartWalletAddress: address,
-        ensName: ensName,
-        setupCompletedAt: new Date().toISOString(),
-        preferences: { selectedToken, selectedChain },
+        ensName,
+        setupSignature: signature,
       })
+
+      // Step 4: Add preference to context and mark as setup
+      addPreference(newPreference)
+      setHasSetup(true)
 
       // Step 5: Route to deposit page
       router.push("/deposit")
