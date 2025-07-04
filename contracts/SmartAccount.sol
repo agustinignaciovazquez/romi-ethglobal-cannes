@@ -26,9 +26,10 @@ contract SmartAccount {
 
     bytes32 private immutable DOMAIN_SEPARATOR;
 
-    constructor(address _userEOA, address _swapRouter) // address _linkToken,
-    // address _ccipRouter
-    {
+    constructor(
+        address _userEOA,
+        address _swapRouter // address _linkToken, // address _ccipRouter
+    ) {
         userEOA = _userEOA;
         swapRouter = _swapRouter;
 
@@ -43,6 +44,10 @@ contract SmartAccount {
                 address(this)
             )
         );
+    }
+
+    function walletName() external pure returns (string memory) {
+        return "Romi Smart Account";
     }
 
     // --- EIP-712 updateConfig via signature ---
