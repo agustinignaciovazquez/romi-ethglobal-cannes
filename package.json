@@ -6,7 +6,11 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "hardhat": "hardhat --tsconfig tsconfig.hardhat.json",
+    "compile": "pnpm hardhat compile",
+    "node": "pnpm hardhat node",
+    "test": "pnpm hardhat test"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -65,11 +69,16 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@chainlink/contracts-ccip": "^1.6.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.0.0",
+    "@openzeppelin/contracts": "^5.3.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "hardhat": "^2.25.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
