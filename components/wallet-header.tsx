@@ -36,14 +36,19 @@ export function WalletHeader() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo/Brand */}
         <div className="flex items-center gap-3">
-          <img 
-            src="/logo.png" 
-            alt="romi logo" 
-            className="w-8 h-8 object-contain"
-          />
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">romi</h1>
-          </div>
+          <button 
+            onClick={() => router.push("/dashboard")}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <img 
+              src="/logo.png" 
+              alt="romi logo" 
+              className="w-8 h-8 object-contain"
+            />
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">romi</h1>
+            </div>
+          </button>
         </div>
 
         {/* Wallet Status */}
