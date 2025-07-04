@@ -1,29 +1,52 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownSelect } from "@/components/dropdown-select"
 import { useWallet } from "@/contexts/wallet-context"
+import { usePrivy } from "@privy-io/react-auth"
 import { tokens, chains } from "@/lib/data"
 import type { Token, Chain } from "@/types"
-import { personalSign, deploySmartWallet } from "@/lib/utils"
+import { personalSign, deploySmartWallet, getWalletSetupData, updateWalletSetupData } from "@/lib/utils"
 
 export default function SetupPage() {
   const [selectedToken, setSelectedToken] = useState<Token | undefined>()
   const [selectedChain, setSelectedChain] = useState<Chain | undefined>()
   const [isDeploying, setIsDeploying] = useState(false)
   const { state, setPreferences, setSmartWallet, setHasSetup } = useWallet()
+  const { authenticated, user } = usePrivy()
   const router = useRouter()
 
+  // Redirect to connect if not authenticated
+  useEffect(() => {
+    if (!authenticated) {
+      router.push("/connect")
+      return
+    }
+  }, [authenticated, router])
+
+  // Redirect to dashboard if already setup
+  useEffect(() => {
+    if (authenticated && user?.wallet?.address) {
+      const walletAddress = user.wallet.address.toLowerCase()
+      const setupData = getWalletSetupData(walletAddress)
+      const hasSetup = setupData?.isSetupCompleted || false
+      
+      if (hasSetup) {
+        router.push("/dashboard")
+      }
+    }
+  }, [router, authenticated, user?.wallet?.address])
+
   const handleContinue = async () => {
-    if (!selectedToken || !selectedChain || !state.userWalletAddress) return
+    if (!selectedToken || !selectedChain || !state.userWalletAddress || !user?.wallet?.address) return
 
     setIsDeploying(true)
     try {
       // Step 1: Personal sign for verification
-      await personalSign("Setup romi wallet", state.userWalletAddress)
+      const signature = await personalSign("Setup romi wallet", state.userWalletAddress)
 
       // Step 2: Deploy smart wallet and assign ENS
       const { address, ensName } = await deploySmartWallet(state.userWalletAddress)
@@ -33,7 +56,18 @@ export default function SetupPage() {
       setSmartWallet(address, ensName)
       setHasSetup(true)
 
-      // Step 4: Route to deposit page
+      // Step 4: Save complete setup data to the wallet setup map
+      const walletAddress = user.wallet.address.toLowerCase()
+      updateWalletSetupData(walletAddress, {
+        isSetupCompleted: true,
+        setupSignature: signature,
+        smartWalletAddress: address,
+        ensName: ensName,
+        setupCompletedAt: new Date().toISOString(),
+        preferences: { selectedToken, selectedChain },
+      })
+
+      // Step 5: Route to deposit page
       router.push("/deposit")
     } catch (error) {
       console.error("Setup failed:", error)
@@ -43,6 +77,15 @@ export default function SetupPage() {
   }
 
   const canContinue = selectedToken && selectedChain && !isDeploying
+
+  // Show loading while checking authentication
+  if (!authenticated) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">

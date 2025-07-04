@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { CopyButton } from "./copy-button"
 import { useWallet } from "@/contexts/wallet-context"
 import { usePrivy } from "@privy-io/react-auth"
-import { formatAddress } from "@/lib/utils"
+import { formatAddress, clearWalletSetupData } from "@/lib/utils"
 
 export function WalletHeader() {
   const { state, logout } = useWallet()
@@ -20,6 +20,12 @@ export function WalletHeader() {
   }
 
   const handleLogout = async () => {
+    // Clear wallet-specific setup data if user is connected
+    if (user?.wallet?.address) {
+      const walletAddress = user.wallet.address.toLowerCase()
+      clearWalletSetupData(walletAddress)
+    }
+    
     logout()
     await privyLogout()
     router.push("/connect")

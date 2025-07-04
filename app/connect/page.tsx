@@ -6,24 +6,45 @@ import { Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWallet } from "@/contexts/wallet-context"
 import { usePrivy } from "@privy-io/react-auth"
+import { hasWalletSetup, getActivePreference } from "@/lib/utils"
+import { getWalletSetupData } from "@/lib/utils"
 
 export default function ConnectPage() {
   const [isConnecting, setIsConnecting] = useState(false)
-  const { connectWallet, state } = useWallet()
+  const { connectWallet, state, setHasSetup } = useWallet()
   const { login, authenticated, user } = usePrivy()
   const router = useRouter()
 
-  // Redirect to dashboard if already authenticated
+  // Check setup status from wallet setup map and update context
+  useEffect(() => {
+    if (authenticated && user?.wallet?.address) {
+      const walletAddress = user.wallet.address.toLowerCase()
+      const setupData = getWalletSetupData(walletAddress)
+      const hasSetup = setupData?.isSetupCompleted || false
+      
+      if (hasSetup !== state.hasSetup) {
+        setHasSetup(hasSetup)
+      }
+    }
+  }, [authenticated, user?.wallet?.address, setHasSetup, state.hasSetup])
+
+  // Redirect based on authentication and setup status
   useEffect(() => {
     if (authenticated && user?.wallet?.address) {
       connectWallet(user.wallet.address)
-      if (state.hasSetup) {
+      
+      // Check if user has completed setup for this specific wallet
+      const walletAddress = user.wallet.address.toLowerCase()
+      const setupData = getWalletSetupData(walletAddress)
+      const hasSetup = setupData?.isSetupCompleted || false
+      
+      if (hasSetup) {
         router.push("/dashboard")
       } else {
         router.push("/setup")
       }
     }
-  }, [authenticated, user?.wallet?.address, state.hasSetup, router])
+  }, [authenticated, user?.wallet?.address, router])
 
   const handleConnect = async () => {
     setIsConnecting(true)
