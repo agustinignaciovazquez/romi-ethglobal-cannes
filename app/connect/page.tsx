@@ -1,29 +1,35 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useWallet } from "@/contexts/wallet-context"
-import { connectWallet as connectWalletUtil } from "@/lib/utils"
+import { usePrivy } from "@privy-io/react-auth"
 
 export default function ConnectPage() {
   const [isConnecting, setIsConnecting] = useState(false)
   const { connectWallet, state } = useWallet()
+  const { login, authenticated, user } = usePrivy()
   const router = useRouter()
 
-  const handleConnect = async () => {
-    setIsConnecting(true)
-    try {
-      const address = await connectWalletUtil()
-      connectWallet(address)
-
-      // Route based on setup status
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (authenticated && user?.wallet?.address) {
+      connectWallet(user.wallet.address)
       if (state.hasSetup) {
         router.push("/dashboard")
       } else {
         router.push("/setup")
       }
+    }
+  }, [authenticated, user, connectWallet, state.hasSetup, router])
+
+  const handleConnect = async () => {
+    setIsConnecting(true)
+    try {
+      await login()
+      // The useEffect above will handle routing after successful login
     } catch (error) {
       console.error("Failed to connect wallet:", error)
     } finally {
@@ -47,9 +53,9 @@ export default function ConnectPage() {
 
         {/* Description */}
         <div className="space-y-3">
-          <h2 className="text-xl font-semibold text-gray-900">Welcome to multichain made simple</h2>
+          <h2 className="text-xl font-semibold text-gray-900">multichain deposits made simple</h2>
           <p className="text-gray-600 leading-relaxed">
-            Connect your wallet to get started with seamless cross-chain token transfers. No gas fees to worry about, no
+            Connect your wallet to get started with seamless cross-chain token transfers. <br /> No gas fees to worry about, no
             complex bridging.
           </p>
         </div>

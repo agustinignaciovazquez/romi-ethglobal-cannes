@@ -5,10 +5,12 @@ import { LogOut, Wallet, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CopyButton } from "./copy-button"
 import { useWallet } from "@/contexts/wallet-context"
+import { usePrivy } from "@privy-io/react-auth"
 import { formatAddress } from "@/lib/utils"
 
 export function WalletHeader() {
   const { state, logout } = useWallet()
+  const { logout: privyLogout, authenticated, user } = usePrivy()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -17,8 +19,9 @@ export function WalletHeader() {
     return null
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     logout()
+    await privyLogout()
     router.push("/connect")
   }
 

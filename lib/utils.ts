@@ -5,13 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Placeholder wallet utility functions
+// Privy-based wallet utility functions
 export async function connectWallet(): Promise<string> {
-  // Simulate wallet connection delay
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  // Return mock wallet address
-  return "0x742d35Cc6634C0532925a3b8D4C2C4e4C4C4C4C4"
+  // This will be called from the component that has access to Privy hooks
+  // For now, return a placeholder - the actual connection will be handled by Privy
+  throw new Error("Use Privy hooks for wallet connection")
 }
 
 export async function getSmartWalletAddress(userAddress: string): Promise<string> {
