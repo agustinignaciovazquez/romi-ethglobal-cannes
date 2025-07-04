@@ -6,10 +6,12 @@ import { ArrowRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownSelect } from "@/components/dropdown-select"
 import { useWallet } from "@/contexts/wallet-context"
-import { usePrivy } from "@privy-io/react-auth"
+import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { tokens, chains } from "@/lib/data"
 import type { Token, Chain } from "@/types"
-import { personalSign, deploySmartWallet, hasWalletSetup, addUserPreference } from "@/lib/utils"
+import { deploySmartWallet, hasWalletSetup, addUserPreference } from "@/lib/utils"
+import { signSmartAccountConfig } from "../../lib/eip712"
+import { ethers } from "ethers"
 
 export default function SetupPage() {
   const [selectedToken, setSelectedToken] = useState<Token | undefined>()
@@ -19,6 +21,7 @@ export default function SetupPage() {
   const { state, addPreference, setHasSetup, connectWallet } = useWallet()
   const { authenticated, user, ready } = usePrivy()
   const router = useRouter()
+  const { wallets } = useWallets()
 
   // Wait for Privy to be ready
   useEffect(() => {
@@ -57,8 +60,22 @@ export default function SetupPage() {
 
     setIsDeploying(true)
     try {
+      const config = {
+        preferredToken: selectedToken.contractAddress,
+        destinationChainSelector: BigInt(selectedChain.chainId),
+        destinationWallet: state.userWalletAddress,
+        nonce: BigInt(Date.now()), // Use current timestamp as nonce
+      }
+      const wallet = wallets?.[0]
+      const ethereumProvider = await wallet.getEthereumProvider()
+      const provider = new ethers.BrowserProvider(ethereumProvider)
+      const signer = await provider.getSigner()
+  
+      const smartAccountAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+
       // Step 1: Personal sign for verification
-      const signature = await personalSign("Setup romi wallet", state.userWalletAddress)
+      const sig = await signSmartAccountConfig(signer, config, smartAccountAddress, 31337)
+
 
       // Step 2: Deploy smart wallet and assign ENS
       const { address, ensName } = await deploySmartWallet(state.userWalletAddress)
@@ -69,7 +86,7 @@ export default function SetupPage() {
         selectedChain,
         smartWalletAddress: address,
         ensName,
-        setupSignature: signature,
+        setupSignature: sig,
       })
 
       // Step 4: Add preference to context and mark as setup
