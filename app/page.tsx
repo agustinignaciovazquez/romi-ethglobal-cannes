@@ -31,7 +31,7 @@ export default function HomePage() {
     // If authenticated and has wallet address
     if (authenticated && user?.wallet?.address) {
       const walletAddress = user.wallet.address.toLowerCase()
-      
+
       // Connect wallet in context if not already connected
       if (!state.userWalletAddress) {
         connectWallet(user.wallet.address)
@@ -39,7 +39,7 @@ export default function HomePage() {
 
       // Check setup status
       const hasSetup = hasWalletSetup(walletAddress)
-      
+
       // Update setup status in context
       if (hasSetup !== state.hasSetup) {
         setHasSetup(hasSetup)

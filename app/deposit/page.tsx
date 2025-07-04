@@ -30,7 +30,7 @@ export default function DepositPage() {
 
     if (authenticated && user?.wallet?.address) {
       const walletAddress = user.wallet.address.toLowerCase()
-      
+
       // Connect wallet in context if not already connected
       if (!state.userWalletAddress) {
         connectWallet(user.wallet.address)

@@ -36,9 +36,11 @@ export function WalletHeader() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo/Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-sm font-bold text-white">R</span>
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="romi logo" 
+            className="w-8 h-8 object-contain"
+          />
           <div>
             <h1 className="text-lg font-bold text-gray-900">romi</h1>
           </div>

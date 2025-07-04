@@ -27,14 +27,14 @@ export default function ConnectPage() {
   useEffect(() => {
     if (authenticated && user?.wallet?.address) {
       const walletAddress = user.wallet.address.toLowerCase()
-      
+
       // Connect wallet in context if not already connected
       if (!state.userWalletAddress) {
         connectWallet(user.wallet.address)
       }
 
       const hasSetup = hasWalletSetup(walletAddress)
-      
+
       if (hasSetup !== state.hasSetup) {
         setHasSetup(hasSetup)
       }
@@ -54,11 +54,11 @@ export default function ConnectPage() {
   useEffect(() => {
     if (authenticated && user?.wallet?.address) {
       connectWallet(user.wallet.address)
-      
+
       // Check if user has completed setup for this specific wallet
       const walletAddress = user.wallet.address.toLowerCase()
       const hasSetup = hasWalletSetup(walletAddress)
-      
+
       if (hasSetup) {
         router.push("/dashboard")
       } else {
