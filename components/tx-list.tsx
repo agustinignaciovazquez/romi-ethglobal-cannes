@@ -63,22 +63,15 @@ export function TxList({ transactions }: TxListProps) {
               {/* Action Button */}
               <div className="flex items-center gap-2 lg:gap-3">
                 <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    tx.status === "Successful"
+                  className={`text-xs font-medium px-2 py-1 rounded-full ${tx.status === "Successful"
                       ? "bg-green-100 text-green-700"
                       : tx.status === "Pending"
                         ? "bg-yellow-100 text-yellow-700"
                         : "bg-red-100 text-red-700"
-                  }`}
+                    }`}
                 >
                   {tx.status}
                 </span>
-
-                {tx.status === "Successful" && (
-                  <Button variant="ghost" size="sm" className="text-xs lg:text-sm">
-                    Withdraw
-                  </Button>
-                )}
               </div>
             </div>
           </div>

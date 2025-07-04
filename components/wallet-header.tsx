@@ -25,7 +25,7 @@ export function WalletHeader() {
       const walletAddress = user.wallet.address.toLowerCase()
       clearWalletSetupData(walletAddress)
     }
-    
+
     logout()
     await privyLogout()
     router.push("/connect")
@@ -36,14 +36,14 @@ export function WalletHeader() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo/Brand */}
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => router.push("/dashboard")}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <img 
-              src="/logo.png" 
-              alt="romi logo" 
-              className="w-8 h-8 object-contain"
+            <img
+              src="/logo.png"
+              alt="romi logo"
+              className="w-12 h-12 object-contain"
             />
             <div>
               <h1 className="text-lg font-bold text-gray-900">romi</h1>

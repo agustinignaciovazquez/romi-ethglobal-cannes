@@ -171,8 +171,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-xs text-gray-500 py-8">
-          <p>Powered by Chainlink CCIP</p>
+        <div className="text-center text-xs text-gray-500 py-1">
         </div>
       </div>
     </div>
