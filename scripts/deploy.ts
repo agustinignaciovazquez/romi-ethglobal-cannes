@@ -14,25 +14,25 @@ async function main() {
   const network = await deployer.provider!.getNetwork();
   const chainId = Number(network.chainId);
   const isBaseChain = chainId === 8453 || chainId === 84532; // Base mainnet or Base Sepolia
-  
+
   console.log("\nChain Information:");
   console.log("Chain ID:", chainId);
   console.log("Is Base Chain:", isBaseChain);
-  
+
   // Show chain name
-  const chainName = chainId === 8453 ? "Base Mainnet" : 
-                   chainId === 84532 ? "Base Sepolia" :
-                   chainId === 1 ? "Ethereum Mainnet" :
-                   chainId === 11155111 ? "Sepolia" :
-                   chainId === 42161 ? "Arbitrum One" :
-                   chainId === 10 ? "Optimism" :
-                   chainId === 31337 ? "Localhost" :
-                   `Chain ${chainId}`;
+  const chainName = chainId === 8453 ? "Base Mainnet" :
+    chainId === 84532 ? "Base Sepolia" :
+      chainId === 1 ? "Ethereum Mainnet" :
+        chainId === 11155111 ? "Sepolia" :
+          chainId === 42161 ? "Arbitrum One" :
+            chainId === 10 ? "Optimism" :
+              chainId === 31337 ? "Localhost" :
+                `Chain ${chainId}`;
   console.log("Network:", chainName);
 
   // Get the L2Registrar address from environment or use zero address for non-Base chains
   const l2RegistrarAddress = process.env.L2_REGISTRAR_ADDRESS || "0x0000000000000000000000000000000000000000";
-  
+
   console.log("L2Registrar Address:", l2RegistrarAddress);
 
   if (!isBaseChain && l2RegistrarAddress !== "0x0000000000000000000000000000000000000000") {

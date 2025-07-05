@@ -40,18 +40,18 @@ export function getSaltHash(salt: string) {
   return ethers.keccak256(ethers.toUtf8Bytes(salt))
 }
 
-export async function getSmartWalletAddress(salt: string): Promise<string> {
+export async function getSmartWalletAddress(chainId: number, salt: string): Promise<string> {
   try {
-    const provider = getRomiDefaultProvider();
+    const provider = getRomiDefaultProvider(chainId);
     const factoryAddress = getFactoryAddress();
     const factory = new ethers.Contract(factoryAddress, Create3FactoryArtifact.abi, provider);
-    
+
     // Check if the contract exists at this address
     const code = await provider.getCode(factoryAddress);
     if (code === '0x') {
       throw new Error(`No contract deployed at factory address: ${factoryAddress}`);
     }
-    
+
     // Check if the getDeployed function exists
     try {
       const result = await factory.getDeployed(getDeployerAddress(), getSaltHash(salt));
@@ -86,15 +86,15 @@ export async function configureSmartWallet(address: string, signature: string, c
         chainId: config.chainId.toString(),
         nonce: config.nonce.toString(),
       },
-      signature 
+      signature
     }),
   })
 }
 
 export async function deploySmartWallet(
-  salt: string, 
-  user: string, 
-  signature: string, 
+  salt: string,
+  user: string,
+  signature: string,
   config: {
     token: string
     chainId: bigint
@@ -127,16 +127,16 @@ export async function deploySmartWallet(
 }
 
 // Helper function to check if the factory contract is compatible with ENS
-export async function checkFactoryCompatibility(): Promise<{
+export async function checkFactoryCompatibility(chainId: number): Promise<{
   isCompatible: boolean;
   hasL2Registrar: boolean;
   contractExists: boolean;
   error?: string;
 }> {
   try {
-    const provider = getRomiDefaultProvider();
+    const provider = getRomiDefaultProvider(chainId);
     const factoryAddress = getFactoryAddress();
-    
+
     // Check if contract exists
     const code = await provider.getCode(factoryAddress);
     if (code === '0x') {
@@ -149,7 +149,7 @@ export async function checkFactoryCompatibility(): Promise<{
     }
 
     const factory = new ethers.Contract(factoryAddress, Create3FactoryArtifact.abi, provider);
-    
+
     try {
       // Check if it has the new ENS methods
       const hasL2Registrar = await factory.hasL2Registrar();

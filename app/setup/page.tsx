@@ -100,7 +100,7 @@ export default function SetupPage() {
       const salt = randomBytes(32).toString("hex") // Generate a random salt
       console.log("Generated salt:", salt)
 
-      const sig = await signSmartAccountConfig(signer, config, await getSmartWalletAddress(salt))
+      const sig = await signSmartAccountConfig(signer, config, await getSmartWalletAddress(config.chainId, salt))
 
       // Step 2: Deploy smart wallet and assign ENS (pass the user's chosen ENS subdomain)
       const { address, ensName } = await deploySmartWallet(salt, state.userWalletAddress, sig, config, ensSubdomain)
