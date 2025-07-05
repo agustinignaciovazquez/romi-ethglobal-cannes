@@ -62,7 +62,7 @@ export default function SetupPage() {
     setIsDeploying(true)
     try {
       const config = {
-        token: selectedToken.contractAddress,
+        token: selectedToken.contractAddress(selectedChain.chainId),
         chainId: BigInt(selectedChain.chainId),
         nonce: BigInt(0)
       }
@@ -132,20 +132,6 @@ export default function SetupPage() {
 
         {/* Form */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-6">
-          {/* Token Selection */}
-          <div className="space-y-3">
-            <label className="block text-sm font-semibold text-gray-900">Preferred Token</label>
-            <DropdownSelect
-              items={tokens}
-              value={selectedToken}
-              onSelect={setSelectedToken}
-              placeholder="Select a token"
-              getLabel={(token) => token.name}
-              getImage={(token) => token.imageUrl}
-            />
-            <p className="text-xs text-gray-500">This is the token you'll primarily receive and hold</p>
-          </div>
-
           {/* Chain Selection */}
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-900">Destination Chain</label>
@@ -158,6 +144,19 @@ export default function SetupPage() {
               getImage={(chain) => chain.imageUrl}
             />
             <p className="text-xs text-gray-500">All tokens will be bridged to this chain automatically</p>
+          </div>
+          {/* Token Selection */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-900">Preferred Token</label>
+            <DropdownSelect
+              items={tokens}
+              value={selectedToken}
+              onSelect={setSelectedToken}
+              placeholder="Select a token"
+              getLabel={(token) => token.name}
+              getImage={(token) => token.imageUrl}
+            />
+            <p className="text-xs text-gray-500">This is the token you'll primarily receive and hold</p>
           </div>
 
           {/* Continue Button */}

@@ -9,7 +9,7 @@ import { PrivyClientProvider } from "@/components/privy-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "romi - All roads lead to romi",
+  title: "Romi - All roads lead to Romi",
   description: "A no-jargon, no-hassle multichain ERC-20 wallet for crypto beginners",
   generator: 'v0.dev',
   icons: {

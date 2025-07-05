@@ -45,7 +45,7 @@ export function WalletHeader() {
               className="w-12 h-12 object-contain"
             />
             <div>
-              <h1 className="text-lg font-bold text-gray-900">romi</h1>
+              <h1 className="text-lg font-bold text-gray-900">Romi</h1>
             </div>
           </button>
         </div>

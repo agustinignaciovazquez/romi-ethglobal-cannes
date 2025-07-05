@@ -2,58 +2,51 @@ import type { Token, Chain, Transaction } from "@/types"
 
 export const tokens: Token[] = [
   {
-    name: "USDC Pol",
-    contractAddress: "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
-    imageUrl: "/usdc.png",
+    name: "USDC",
+    contractAddress: (chainId: number) => {
+      switch (chainId) {
+        case 42161: // Arbitrum
+          return "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+        case 10: // Optimism
+          return "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
+        default: // Base
+          return "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      }
+    },
+    imageUrl: "/tokens/usdc.webp",
   },
   {
-    name: "USDC Arb",
-    contractAddress: "0x5Df6eD08EEC2fD5e41914d291c0cf48Cd3564421",
-    imageUrl: "/usdc.png",
-  },
-  {
-    name: "USDC Op",
-    contractAddress: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7",
-    imageUrl: "/usdc.png",
-  },
-  {
-    name: "USDC Base",
-    contractAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-    imageUrl: "/usdc.png",
-  },
-  {
-    name: "USDC Sepolia",
-    contractAddress: "0xf661043d9Bc1ef2169Ef90ad3b2285Cf8Bfc0AE2",
-    imageUrl: "/usdc.png",
+    name: "Weth",
+    contractAddress: (chainId: number) => {
+      switch (chainId) {
+        case 42161: // Arbitrum
+          return "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"
+        case 10: // Optimism
+          return "0x4200000000000000000000000000000000000006"
+        default: // Base
+          return "0x4200000000000000000000000000000000000006"
+      }
+    },
+    imageUrl: "/tokens/weth.webp",
   },
 ]
 
 export const chains: Chain[] = [
   // {
-  //   name: "Polygon",
-  //   chainId: 80002,
-  //   imageUrl: "/placeholder.svg?height=32&width=32",
-  // },
-  // {
   //   name: "Arbitrum",
-  //   chainId: 421614,
-  //   imageUrl: "/placeholder.svg?height=32&width=32",
+  //   chainId: 42161,
+  //   imageUrl: "/blockchains/arbitrum.svg?height=32&width=32",
   // },
   // {
   //   name: "Optimism",
-  //   chainId: 11155420,
-  //   imageUrl: "/placeholder.svg?height=32&width=32",
+  //   chainId: 10,
+  //   imageUrl: "/blockchains/optimism.svg?height=32&width=32",
   // },
   {
     name: "Base",
     chainId: 8453,
-    imageUrl: "/placeholder.svg?height=32&width=32",
+    imageUrl: "/blockchains/base.svg?height=32&width=32",
   },
-  // {
-  //   name: "Sepolia",
-  //   chainId: 11155111,
-  //   imageUrl: "/placeholder.svg?height=32&width=32",
-  // },
 ]
 
 export const mockTransactions: Transaction[] = [

@@ -90,7 +90,7 @@ export default function SettingsPage() {
     setIsSaving(true)
     try {
       // Step 1: Personal sign for verification
-      const signature = await personalSign("Update romi wallet preferences", state.userWalletAddress)
+      const signature = await personalSign("Update Romi wallet preferences", state.userWalletAddress)
 
       // Step 2: Deploy new smart wallet for this preference set
       const { address, ensName } = await deploySmartWallet(state.userWalletAddress)

@@ -39,9 +39,6 @@ export async function POST(req: NextRequest) {
       const creationTx = await SmartAccountFactory.getDeployTransaction(address, 0, '0x111111125421cA6dc452d289314280a0f8842A65')
       const bytecode = creationTx.data!
       const SALT = ethers.keccak256(ethers.toUtf8Bytes(salt))
-
-      console.log('Deploying Smart Account with salt:', SALT)
-      console.log('Deploying Smart Account with bytecode:', bytecode)
   
       const tx = await factory.deploy(SALT, bytecode)
       await tx.wait()

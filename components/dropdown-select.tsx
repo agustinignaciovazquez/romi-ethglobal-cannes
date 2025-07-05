@@ -56,9 +56,7 @@ export function DropdownSelect<T>({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder={`Search ${placeholder.toLowerCase()}...`} />
           <CommandList>
-            <CommandEmpty>No items found.</CommandEmpty>
             <CommandGroup>
               {items.map((item, index) => (
                 <CommandItem

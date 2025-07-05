@@ -1,6 +1,6 @@
 export interface Token {
   name: string
-  contractAddress: string
+  contractAddress: (chainId: number) => string
   imageUrl: string
 }
 

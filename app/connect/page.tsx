@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button"
 import { useWallet } from "@/contexts/wallet-context"
 import { usePrivy } from "@privy-io/react-auth"
 import { hasWalletSetup, getActivePreference } from "@/lib/utils"
-import { getWalletSetupData } from "@/lib/utils"
 
 export default function ConnectPage() {
   const [isConnecting, setIsConnecting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const { connectWallet, state, setHasSetup, setActivePreference, addPreference } = useWallet()
+  const { connectWallet, state, setHasSetup, addPreference } = useWallet()
   const { login, authenticated, user, ready } = usePrivy()
   const router = useRouter()
 
@@ -97,14 +96,14 @@ export default function ConnectPage() {
             <span className="text-2xl font-bold text-white">R</span>
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-gray-900">romi</h1>
-            <p className="text-gray-600 font-medium">All roads lead to romi</p>
+            <h1 className="text-3xl font-bold text-gray-900">Romi</h1>
+            <p className="text-gray-600 font-medium">All chains lead to Romi</p>
           </div>
         </div>
 
         {/* Description */}
         <div className="space-y-3">
-          <h2 className="text-xl font-semibold text-gray-900">multichain deposits made simple</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Multichain deposits made simple</h2>
           <p className="text-gray-600 leading-relaxed">
             Connect your wallet to get started with seamless cross-chain token transfers. <br /> No gas fees to worry about, no
             complex bridging.
