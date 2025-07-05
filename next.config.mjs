@@ -9,6 +9,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  env: {
+    NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL: process.env.BASE_SEPOLIA_RPC_URL,
+  },
 }
 
 export default nextConfig

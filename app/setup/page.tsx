@@ -13,6 +13,7 @@ import type { Token, Chain } from "@/types"
 import { hasWalletSetup, addUserPreference } from "@/lib/utils"
 import { deploySmartWallet, getSmartWalletAddress, signSmartAccountConfig } from "../../lib/romi"
 import { useSigner } from "../../hooks/use-signer"
+import { useEnsAvailability } from "../../hooks/use-ens-availability"
 import { randomBytes } from "crypto"
 
 export default function SetupPage() {
@@ -25,11 +26,9 @@ export default function SetupPage() {
   const { authenticated, user, ready } = usePrivy()
   const router = useRouter()
   const signer = useSigner(wallets?.[0]) // Moved useSigner hook to top level
+  const { isChecking: isCheckingEns, isAvailable: ensAvailable, error: ensError, checkAvailability: checkEnsAvailability } = useEnsAvailability()
 
   const [ensSubdomain, setEnsSubdomain] = useState("")
-  const [isCheckingEns, setIsCheckingEns] = useState(false)
-  const [ensAvailable, setEnsAvailable] = useState<boolean | null>(null)
-  const [ensError, setEnsError] = useState("")
 
   // Wait for Privy to be ready
   useEffect(() => {
@@ -62,50 +61,6 @@ export default function SetupPage() {
       }
     }
   }, [authenticated, user?.wallet?.address, state.userWalletAddress, router, connectWallet])
-
-  // Debounced ENS availability check
-  const checkEnsAvailability = useCallback(async (subdomain: string) => {
-    if (!subdomain || subdomain.length < 3) {
-      setEnsAvailable(null)
-      setEnsError("")
-      return
-    }
-
-    // Basic validation
-    if (!/^[a-z0-9-]+$/.test(subdomain)) {
-      setEnsAvailable(false)
-      setEnsError("Only lowercase letters, numbers, and hyphens allowed")
-      return
-    }
-
-    if (subdomain.startsWith("-") || subdomain.endsWith("-")) {
-      setEnsAvailable(false)
-      setEnsError("Cannot start or end with a hyphen")
-      return
-    }
-
-    setIsCheckingEns(true)
-    setEnsError("")
-
-    try {
-      // Simulate API call - replace with actual ENS availability check
-      await new Promise((resolve) => setTimeout(resolve, 800))
-
-      // Mock availability logic (replace with real check)
-      const unavailableNames = ["admin", "test", "user", "wallet", "romi", "eth", "crypto"]
-      const isAvailable = !unavailableNames.includes(subdomain.toLowerCase()) && Math.random() > 0.3
-
-      setEnsAvailable(isAvailable)
-      if (!isAvailable) {
-        setEnsError("This subdomain is already taken")
-      }
-    } catch (error) {
-      setEnsError("Failed to check availability")
-      setEnsAvailable(false)
-    } finally {
-      setIsCheckingEns(false)
-    }
-  }, [])
 
   // Debounce the ENS check
   useEffect(() => {
