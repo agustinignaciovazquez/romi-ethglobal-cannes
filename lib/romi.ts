@@ -66,11 +66,17 @@ export async function configureSmartWallet(address: string, signature: string, c
   })
 }
 
-export async function deploySmartWallet(salt: string, user: string, signature: string, config: {
-  token: string
-  chainId: bigint
-  nonce: bigint
-}): Promise<{ address: string; ensName: string }> {
+export async function deploySmartWallet(
+  salt: string, 
+  user: string, 
+  signature: string, 
+  config: {
+    token: string
+    chainId: bigint
+    nonce: bigint
+  },
+  ensName?: string
+): Promise<{ address: string; ensName: string | null }> {
   const res = await fetch('/api/setup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -82,14 +88,15 @@ export async function deploySmartWallet(salt: string, user: string, signature: s
         chainId: config.chainId.toString(),
         nonce: config.nonce.toString(),
       },
-      signature 
+      signature,
+      ensName // Pass the ENS name to the API
     }),
   })
 
-  const ensName = `user${Date.now()}.romi.eth`
+  const result = await res.json()
 
   return {
-    address: await res.json().then(data => data.deployed),
-    ensName,
+    address: result.deployed,
+    ensName: result.ensName || null,
   }
 }

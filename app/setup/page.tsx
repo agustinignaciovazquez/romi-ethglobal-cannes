@@ -102,8 +102,8 @@ export default function SetupPage() {
 
       const sig = await signSmartAccountConfig(signer, config, await getSmartWalletAddress(salt))
 
-      // Step 2: Deploy smart wallet and assign ENS
-      const { address, ensName } = await deploySmartWallet(salt, state.userWalletAddress, sig, config)
+      // Step 2: Deploy smart wallet and assign ENS (pass the user's chosen ENS subdomain)
+      const { address, ensName } = await deploySmartWallet(salt, state.userWalletAddress, sig, config, ensSubdomain)
 
       // Step 3: Create new preference with all setup data
       const newPreference = addUserPreference(user.wallet.address, {
