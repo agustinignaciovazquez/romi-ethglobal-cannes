@@ -103,8 +103,10 @@ async function main() {
         console.log("4. Add registrar to registry");
         console.log("5. Test registration directly");
         console.log("6. Check registrar status");
+        console.log("7. Remove registrar from registry");
+        console.log("8. Show contract verification commands");
 
-        const action = await getUserInput("Choose an action (1-6): ");
+        const action = await getUserInput("Choose an action (1-8): ");
 
         switch (action) {
             case "1":
@@ -124,6 +126,12 @@ async function main() {
                 break;
             case "6":
                 await checkRegistrarStatus(registry, deployer);
+                break;
+            case "7":
+                await removeRegistrarFromRegistry(registry, deployer);
+                break;
+            case "8":
+                await showVerificationCommands(registry, deployer);
                 break;
             default:
                 console.log("Invalid action selected");
@@ -272,6 +280,236 @@ async function checkRegistrarStatus(registry: any, deployer: any) {
 
     } catch (error) {
         console.error("❌ Failed to check registrar status:", error);
+    }
+}
+
+async function removeRegistrarFromRegistry(registry: any, deployer: any) {
+    const registrarAddress = await getUserInput("Enter registrar address to remove: ");
+
+    try {
+        // First check if it's currently a registrar
+        const isRegistrar = await registry.registrars(registrarAddress);
+        if (!isRegistrar) {
+            console.log(`⚠️ ${registrarAddress} is not currently a registrar`);
+            return;
+        }
+
+        console.log(`\n🗑️ Removing ${registrarAddress} from registry...`);
+
+        const removeTx = await registry.removeRegistrar(registrarAddress);
+        await removeTx.wait();
+
+        console.log("✅ Registrar removed successfully");
+
+        // Verify removal
+        const isStillRegistrar = await registry.registrars(registrarAddress);
+        console.log("Verification - Is still registrar:", isStillRegistrar);
+
+        if (!isStillRegistrar) {
+            console.log("✅ Registrar successfully removed from registry");
+        } else {
+            console.log("⚠️ Registrar might still be in registry - please check manually");
+        }
+
+    } catch (error) {
+        console.error("❌ Failed to remove registrar:", error);
+        console.log("\nPossible issues:");
+        console.log("1. You don't have permission to remove registrars (not registry owner)");
+        console.log("2. The registrar address is invalid");
+        console.log("3. The registrar was not added to the registry");
+    }
+}
+
+async function showVerificationCommands(registry: any, deployer: any) {
+    console.log("\n📋 Contract Verification Commands");
+    console.log("=================================");
+    
+    const networkName = network.name;
+    const chainId = network.config.chainId;
+    
+    console.log(`\n🌐 Current Network: ${networkName} (Chain ID: ${chainId})`);
+    console.log(`📍 Registry Address: ${REGISTRY_ADDRESS}`);
+    
+    // Get registry info for verification
+    try {
+        console.log("\n📊 Getting contract information...");
+        
+        let baseNode = "N/A";
+        let registryName = "N/A";
+        let registrySymbol = "N/A";
+        
+        try {
+            baseNode = await registry.baseNode();
+            console.log(`Base Node: ${baseNode}`);
+        } catch (error) {
+            console.log("⚠️ Could not get base node");
+        }
+        
+        try {
+            registryName = await registry.name();
+            console.log(`Registry Name: ${registryName}`);
+        } catch (error) {
+            console.log("⚠️ Could not get registry name");
+        }
+        
+        try {
+            registrySymbol = await registry.symbol();
+            console.log(`Registry Symbol: ${registrySymbol}`);
+        } catch (error) {
+            console.log("⚠️ Could not get registry symbol");
+        }
+        
+        // Generate verification commands based on network
+        console.log("\n🔍 Verification Commands:");
+        console.log("========================");
+        
+        if (networkName === "baseSepolia") {
+            console.log("\n📝 For Base Sepolia:");
+            console.log("```bash");
+            console.log(`pnpm hardhat verify --network baseSepolia ${REGISTRY_ADDRESS} "${baseNode}" "${registryName}" "${registrySymbol}"`);
+            console.log("```");
+            console.log("\n💡 Alternative with individual parameters:");
+            console.log("```bash");
+            console.log(`pnpm hardhat verify \\`);
+            console.log(`  --network baseSepolia \\`);
+            console.log(`  ${REGISTRY_ADDRESS} \\`);
+            console.log(`  "${baseNode}" \\`);
+            console.log(`  "${registryName}" \\`);
+            console.log(`  "${registrySymbol}"`);
+            console.log("```");
+        } else if (networkName === "sepolia") {
+            console.log("\n📝 For Sepolia:");
+            console.log("```bash");
+            console.log(`pnpm hardhat verify --network sepolia ${REGISTRY_ADDRESS} "${baseNode}" "${registryName}" "${registrySymbol}"`);
+            console.log("```");
+        } else if (networkName === "mainnet") {
+            console.log("\n📝 For Mainnet:");
+            console.log("```bash");
+            console.log(`pnpm hardhat verify --network mainnet ${REGISTRY_ADDRESS} "${baseNode}" "${registryName}" "${registrySymbol}"`);
+            console.log("```");
+        } else {
+            console.log(`\n📝 For ${networkName}:`);
+            console.log("```bash");
+            console.log(`pnpm hardhat verify --network ${networkName} ${REGISTRY_ADDRESS} "${baseNode}" "${registryName}" "${registrySymbol}"`);
+            console.log("```");
+        }
+        
+        // Show L2Registrar verification if user wants
+        const verifyRegistrar = await getUserInput("\nDo you want to see L2Registrar verification commands? (y/n): ");
+        
+        if (verifyRegistrar.toLowerCase() === 'y' || verifyRegistrar.toLowerCase() === 'yes') {
+            const registrarAddress = await getUserInput("Enter L2Registrar address: ");
+            
+            console.log("\n🎫 L2Registrar Verification:");
+            console.log("===========================");
+            console.log("```bash");
+            console.log(`pnpm hardhat verify --network ${networkName} ${registrarAddress} "${REGISTRY_ADDRESS}"`);
+            console.log("```");
+        }
+        
+        console.log("\n📚 Additional Notes:");
+        console.log("- Make sure you have ETHERSCAN_API_KEY set in your .env file");
+        console.log("- Constructor parameters must match exactly what was used during deployment");
+        console.log("- If verification fails, check that the contract source code is compiled with the same settings");
+        console.log("- For custom networks, make sure etherscan config is properly set in hardhat.config.ts");
+        
+        // Offer to run verification automatically
+        const runVerification = await getUserInput("\nDo you want to run verification automatically? (y/n): ");
+        
+        if (runVerification.toLowerCase() === 'y' || runVerification.toLowerCase() === 'yes') {
+            await runAutomaticVerification(networkName, REGISTRY_ADDRESS, baseNode, registryName, registrySymbol);
+        }
+        
+    } catch (error) {
+        console.error("❌ Failed to get contract information:", error);
+        console.log("\n📝 Generic verification command:");
+        console.log("```bash");
+        console.log(`pnpm hardhat verify --network ${networkName} ${REGISTRY_ADDRESS} [CONSTRUCTOR_ARGS...]`);
+        console.log("```");
+    }
+}
+
+async function runAutomaticVerification(networkName: string, contractAddress: string, baseNode: string, registryName: string, registrySymbol: string) {
+    console.log("\n🔄 Running automatic verification...");
+    
+    try {
+        // First, ensure contracts are compiled
+        console.log("1. Cleaning and recompiling contracts...");
+        
+        const { spawn } = require('child_process');
+        
+        // Clean first
+        const cleanProcess = spawn('pnpm', ['hardhat', 'clean'], {
+            stdio: 'inherit',
+            cwd: process.cwd()
+        });
+        
+        await new Promise((resolve, reject) => {
+            cleanProcess.on('close', (code: number) => {
+                if (code === 0) {
+                    console.log("✅ Clean completed");
+                    resolve(code);
+                } else {
+                    reject(new Error(`Clean failed with exit code ${code}`));
+                }
+            });
+        });
+        
+        // Then compile
+        const compileProcess = spawn('pnpm', ['hardhat', 'compile'], {
+            stdio: 'inherit',
+            cwd: process.cwd()
+        });
+        
+        await new Promise((resolve, reject) => {
+            compileProcess.on('close', (code: number) => {
+                if (code === 0) {
+                    console.log("✅ Compilation completed");
+                    resolve(code);
+                } else {
+                    reject(new Error(`Compilation failed with exit code ${code}`));
+                }
+            });
+        });
+        
+        // Now run verification
+        console.log("2. Running verification...");
+        
+        const verifyArgs = [
+            'hardhat',
+            'verify',
+            '--network',
+            networkName,
+            contractAddress,
+            baseNode,
+            registryName,
+            registrySymbol
+        ];
+        
+        console.log(`Running: pnpm ${verifyArgs.join(' ')}`);
+        
+        const verifyProcess = spawn('pnpm', verifyArgs, {
+            stdio: 'inherit',
+            cwd: process.cwd()
+        });
+        
+        await new Promise((resolve, reject) => {
+            verifyProcess.on('close', (code: number) => {
+                if (code === 0) {
+                    console.log("✅ Verification completed successfully!");
+                    resolve(code);
+                } else {
+                    console.log(`⚠️ Verification completed with exit code ${code}`);
+                    console.log("This might be normal if the contract was already verified.");
+                    resolve(code);
+                }
+            });
+        });
+        
+    } catch (error) {
+        console.error("❌ Automatic verification failed:", error);
+        console.log("\nTry running the verification command manually:");
+        console.log(`pnpm hardhat verify --network ${networkName} ${contractAddress} "${baseNode}" "${registryName}" "${registrySymbol}"`);
     }
 }
 
