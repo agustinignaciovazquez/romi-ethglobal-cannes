@@ -10,7 +10,13 @@
     "hardhat": "hardhat --tsconfig tsconfig.hardhat.json",
     "compile": "pnpm hardhat compile",
     "node": "pnpm hardhat node",
-    "test": "pnpm hardhat test"
+    "test": "pnpm hardhat test",
+    "deploy:localhost": "pnpm hardhat run scripts/deploy-durin-ens.ts --network localhost",
+    "deploy:baseSepolia": "pnpm hardhat run scripts/deploy-durin-ens.ts --network baseSepolia",
+    "setup:ens": "pnpm hardhat run scripts/setup-ens-l1.ts",
+    "setup:ens-sepolia": "NETWORK=sepolia pnpm hardhat run scripts/setup-ens-l1.ts",
+    "verify:baseSepolia": "echo 'Run individual verify commands from deployment output'",
+    "verify:sepolia": "echo 'Run individual verify commands from deployment output'"
   },
   "dependencies": {
     "@ensdomains/ens-contracts": "1.1.1",
