@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Wallet } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { useWallet } from "@/contexts/wallet-context"
 import { usePrivy } from "@privy-io/react-auth"
@@ -92,8 +93,14 @@ export default function ConnectPage() {
       <div className="w-full max-w-md space-y-8 text-center">
         {/* Logo/Brand */}
         <div className="space-y-4">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-            <span className="text-2xl font-bold text-white">R</span>
+          <div className="w-12 h-12 mx-auto bg-gradient-to-br from-white-500 to-white-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Image
+              src="/logo.png"
+              alt="Romi Logo"
+              width={86}
+              height={86}
+              className="w-full h-full"
+            />
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-gray-900">Romi</h1>
