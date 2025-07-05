@@ -3,7 +3,7 @@ import * as readline from "readline";
 
 async function main() {
     // You'll need to replace this with your deployed contract address
-    const REGISTRAR_ADDRESS = process.env.REGISTRAR_ADDRESS;
+    const REGISTRAR_ADDRESS = process.env.L2_REGISTRAR_ADDRESS;
 
     if (!REGISTRAR_ADDRESS) {
         console.error("❌ Error: REGISTRAR_ADDRESS environment variable is required");

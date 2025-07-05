@@ -5,7 +5,8 @@
   "scripts": {
     "build": "next build",
     "compile": "pnpm hardhat compile",
-    "debug:registry": "pnpm hardhat run scripts/debug-registry.ts --network baseSepolia",
+    "debug:registry:baseSepolia": "pnpm hardhat run scripts/debug-registry.ts --network baseSepolia",
+    "debug:registry:base": "pnpm hardhat run scripts/debug-registry.ts --network base",
     "debug:registry:localhost": "pnpm hardhat run scripts/debug-registry.ts --network localhost",
     "deploy": "pnpm hardhat run scripts/deploy.ts --network localhost",
     "deploy:baseSepolia": "pnpm hardhat run scripts/deploy-durin-ens.ts --network baseSepolia",
@@ -13,6 +14,8 @@
     "deploy:factory": "pnpm hardhat run scripts/deploy.ts --network localhost",
     "deploy:factory:baseSepolia": "pnpm hardhat run scripts/deploy.ts --network baseSepolia",
     "deploy:factory:base": "pnpm hardhat run scripts/deploy.ts --network base",
+    "setup:transferL2RegistrarOwnership:baseSepolia": "pnpm hardhat run scripts/transfer-ownership.ts --network baseSepolia",
+    "setup:transferL2RegistrarOwnership:base": "pnpm hardhat run scripts/transfer-ownership.ts --network base",
     "dev": "next dev",
     "hardhat": "hardhat --tsconfig tsconfig.hardhat.json",
     "lint": "next lint",

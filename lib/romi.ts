@@ -41,9 +41,34 @@ export function getSaltHash(salt: string) {
 }
 
 export async function getSmartWalletAddress(salt: string): Promise<string> {
-  const provider =  getRomiDefaultProvider();
-  const factory = new ethers.Contract(getFactoryAddress(), Create3FactoryArtifact.abi, provider)
-  return await factory.getDeployed(getDeployerAddress(), getSaltHash(salt))
+  try {
+    const provider = getRomiDefaultProvider();
+    const factoryAddress = getFactoryAddress();
+    const factory = new ethers.Contract(factoryAddress, Create3FactoryArtifact.abi, provider);
+    
+    // Check if the contract exists at this address
+    const code = await provider.getCode(factoryAddress);
+    if (code === '0x') {
+      throw new Error(`No contract deployed at factory address: ${factoryAddress}`);
+    }
+    
+    // Check if the getDeployed function exists
+    try {
+      const result = await factory.getDeployed(getDeployerAddress(), getSaltHash(salt));
+      return result;
+    } catch (error: any) {
+      if (error.code === 'BAD_DATA' || error.message.includes('could not decode result data')) {
+        throw new Error(
+          `The factory contract at ${factoryAddress} doesn't have the getDeployed method. ` +
+          `This might be an old contract. Please deploy a new RomiFactory using the updated script.`
+        );
+      }
+      throw error;
+    }
+  } catch (error: any) {
+    console.error('Error getting smart wallet address:', error);
+    throw new Error(`Failed to get smart wallet address: ${error.message}`);
+  }
 }
 
 export async function configureSmartWallet(address: string, signature: string, config: {
@@ -98,5 +123,55 @@ export async function deploySmartWallet(
   return {
     address: result.deployed,
     ensName: result.ensName || null,
+  }
+}
+
+// Helper function to check if the factory contract is compatible with ENS
+export async function checkFactoryCompatibility(): Promise<{
+  isCompatible: boolean;
+  hasL2Registrar: boolean;
+  contractExists: boolean;
+  error?: string;
+}> {
+  try {
+    const provider = getRomiDefaultProvider();
+    const factoryAddress = getFactoryAddress();
+    
+    // Check if contract exists
+    const code = await provider.getCode(factoryAddress);
+    if (code === '0x') {
+      return {
+        isCompatible: false,
+        hasL2Registrar: false,
+        contractExists: false,
+        error: `No contract deployed at ${factoryAddress}`
+      };
+    }
+
+    const factory = new ethers.Contract(factoryAddress, Create3FactoryArtifact.abi, provider);
+    
+    try {
+      // Check if it has the new ENS methods
+      const hasL2Registrar = await factory.hasL2Registrar();
+      return {
+        isCompatible: true,
+        hasL2Registrar,
+        contractExists: true
+      };
+    } catch (error: any) {
+      return {
+        isCompatible: false,
+        hasL2Registrar: false,
+        contractExists: true,
+        error: `Contract exists but missing ENS methods: ${error.message}`
+      };
+    }
+  } catch (error: any) {
+    return {
+      isCompatible: false,
+      hasL2Registrar: false,
+      contractExists: false,
+      error: error.message
+    };
   }
 }
