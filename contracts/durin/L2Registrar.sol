@@ -2,7 +2,7 @@
 // source: https://raw.githubusercontent.com/namestonehq/durin/refs/heads/main/src/examples/L2Registrar.sol
 pragma solidity ^0.8.20;
 
-import {StringUtils} from "@ensdomains/ens-contracts/utils/StringUtils.sol";
+import {StringUtils} from "./lib/StringUtils.sol";
 
 import {IL2Registry} from "./interfaces/IL2Registry.sol";
 

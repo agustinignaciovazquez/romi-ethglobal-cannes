@@ -12,7 +12,7 @@ pragma solidity ^0.8.20;
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {NameEncoder} from "@ensdomains/ens-contracts/utils/NameEncoder.sol";
+import {NameEncoder} from "@ensdomains/ens-contracts/contracts/utils/NameEncoder.sol";
 
 import {ENSDNSUtils} from "./lib/ENSDNSUtils.sol";
 import {L2Resolver} from "./L2Resolver.sol";
