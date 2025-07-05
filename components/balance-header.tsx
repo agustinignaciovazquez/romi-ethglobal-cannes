@@ -81,7 +81,7 @@ export function BalanceHeader() {
         <div className="space-y-1">
           <p className="text-sm text-gray-500 font-medium">Total Balance</p>
           <p className="text-3xl font-bold text-gray-900">
-            ${balance && balance.toString().substring(0, 8)}
+            {balance && balance.toString().substring(0, 8)}
             {activePreference && (
               <span className="text-lg font-normal text-gray-500 ml-2">{activePreference.selectedToken.name}</span>
             )}
