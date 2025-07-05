@@ -5,7 +5,7 @@ import { ethers } from "ethers"
 const L2_REGISTRY_ADDRESS = "0xcbd1662b5e606420e79f32ea26de40c16acaa881"
 
 // Root domain for ENS subdomains (Sepolia testnet)
-const ROOT_DOMAIN = "testoromi.eth"
+export const ROOT_DOMAIN = "testoromi.eth"
 
 // ENS Registry ABI - L2Registry is an ERC721 contract
 const ENS_REGISTRY_ABI = [

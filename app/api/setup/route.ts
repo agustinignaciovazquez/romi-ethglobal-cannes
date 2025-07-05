@@ -5,6 +5,7 @@ import SmartAccountArtifact from '@/artifacts/contracts/romi/RomiSmartAccount.so
 import Create3FactoryArtifact from '@/artifacts/contracts/romi/RomiFactory.sol/RomiFactory.json'
 import { chains } from '../../../lib/data'
 import { shouldAttemptENSRegistration, getChainName } from '../../../lib/chain-utils'
+import { ROOT_DOMAIN } from '@/hooks/use-ens-availability'
 
 const PRIVATE_KEY = process.env.NEXT_PRIVATE_PK!
 const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS!
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
 
     return Response.json({
       deployed: deployedAddress,
-      ensName: registeredENS,
+      ensName: registeredENS ? `${registeredENS}${ROOT_DOMAIN}` : null,
     })
   } catch (error: any) {
     console.error('Deployment error:', error)
