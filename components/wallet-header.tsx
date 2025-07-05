@@ -21,11 +21,10 @@ export function WalletHeader() {
 
   const handleLogout = async () => {
     // Clear wallet-specific setup data if user is connected
-    if (user?.wallet?.address) {
-      const walletAddress = user.wallet.address.toLowerCase()
-      clearWalletSetupData(walletAddress)
-    }
-
+    // if (user?.wallet?.address) {
+    //   const walletAddress = user.wallet.address.toLowerCase()
+    //   clearWalletSetupData(walletAddress)
+    // }
     logout()
     await privyLogout()
     router.push("/connect")
@@ -59,13 +58,8 @@ export function WalletHeader() {
               <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span className="text-sm font-medium text-gray-700">
-                  {state.ensName || formatAddress(state.userWalletAddress)}
+                  {formatAddress(state.userWalletAddress)}
                 </span>
-                <CopyButton
-                  text={state.ensName || state.userWalletAddress}
-                  size="sm"
-                  className="text-gray-500 hover:text-gray-700"
-                />
               </div>
 
               {/* Mobile wallet indicator */}
@@ -74,12 +68,12 @@ export function WalletHeader() {
                 <Wallet className="w-4 h-4 text-gray-600" />
               </div>
 
-              {/* Settings Button */}
+              {/* Settings Button 
               {state.hasSetup && (
                 <Button variant="ghost" size="sm" onClick={() => router.push("/settings")} className="hidden sm:flex">
                   <Settings className="w-4 h-4" />
                 </Button>
-              )}
+              )*/}
 
               {/* Logout Button */}
               <Button variant="ghost" size="sm" onClick={handleLogout} className="text-red-600 hover:text-red-700">
