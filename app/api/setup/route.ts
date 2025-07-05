@@ -5,8 +5,8 @@ import SmartAccountArtifact from '@/artifacts/contracts/romi/RomiSmartAccount.so
 import Create3FactoryArtifact from '@/artifacts/contracts/romi/RomiFactory.sol/RomiFactory.json'
 import { chains } from '../../../lib/data'
 import { shouldAttemptENSRegistration, getChainName } from '../../../lib/chain-utils'
-import { ROOT_DOMAIN } from '@/hooks/use-ens-availability'
 
+const ROOT_DOMAIN = ".testoromi.eth"
 const PRIVATE_KEY = process.env.NEXT_PRIVATE_PK!
 const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS!
 
