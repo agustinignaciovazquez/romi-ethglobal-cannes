@@ -31,23 +31,8 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    apiKey: {
-      // Use unified Etherscan API key for Sepolia
-      sepolia: process.env.ETHERSCAN_API_KEY || "",
-      // Use unified Etherscan API key for Base Sepolia
-      baseSepolia: process.env.ETHERSCAN_API_KEY || "",
-    },
-    customChains: [
-      {
-        network: "baseSepolia",
-        chainId: 84532,
-        urls: {
-          apiURL: "https://api-sepolia.basescan.org/api",
-          browserURL: "https://sepolia.basescan.org",
-        },
-      },
-    ],
-  },
+    apiKey: process.env.ETHERSCAN_API_KEY, // ✅ unified key
+  }
 };
 
 export default config;

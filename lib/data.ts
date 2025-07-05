@@ -2,51 +2,56 @@ import type { Token, Chain, Transaction } from "@/types"
 
 export const tokens: Token[] = [
   {
-    name: "USDC",
-    contractAddress: "0xa0b86a33e6ba3b1c4e6b0b8b8b8b8b8b8b8b8b8b",
+    name: "USDC Pol",
+    contractAddress: "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
     imageUrl: "/usdc.png",
   },
   {
-    name: "USDT",
-    contractAddress: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-    imageUrl: "/placeholder.svg?height=32&width=32",
+    name: "USDC Arb",
+    contractAddress: "0x5Df6eD08EEC2fD5e41914d291c0cf48Cd3564421",
+    imageUrl: "/usdc.png",
   },
   {
-    name: "DAI",
-    contractAddress: "0x6b175474e89094c44da98b954eedeac495271d0f",
-    imageUrl: "/placeholder.svg?height=32&width=32",
+    name: "USDC Op",
+    contractAddress: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7",
+    imageUrl: "/usdc.png",
   },
   {
-    name: "WETH",
-    contractAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-    imageUrl: "/placeholder.svg?height=32&width=32",
+    name: "USDC Base",
+    contractAddress: "0xcBA01C75D035ca98FfC7710DAe710435CA53c03C",
+    imageUrl: "/usdc.png",
+  },
+  {
+    name: "USDC Sepolia",
+    contractAddress: "0xf661043d9Bc1ef2169Ef90ad3b2285Cf8Bfc0AE2",
+    imageUrl: "/usdc.png",
   },
 ]
 
 export const chains: Chain[] = [
-  {
-    name: "Ethereum",
-    chainId: 1,
-    imageUrl: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    name: "Polygon",
-    chainId: 137,
-    imageUrl: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    name: "Arbitrum",
-    chainId: 42161,
-    imageUrl: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    name: "Optimism",
-    chainId: 10,
-    imageUrl: "/placeholder.svg?height=32&width=32",
-  },
+  // {
+  //   name: "Polygon",
+  //   chainId: 80002,
+  //   imageUrl: "/placeholder.svg?height=32&width=32",
+  // },
+  // {
+  //   name: "Arbitrum",
+  //   chainId: 421614,
+  //   imageUrl: "/placeholder.svg?height=32&width=32",
+  // },
+  // {
+  //   name: "Optimism",
+  //   chainId: 11155420,
+  //   imageUrl: "/placeholder.svg?height=32&width=32",
+  // },
   {
     name: "Base",
-    chainId: 8453,
+    chainId: 84532,
+    imageUrl: "/placeholder.svg?height=32&width=32",
+  },
+  {
+    name: "Sepolia",
+    chainId: 11155111,
     imageUrl: "/placeholder.svg?height=32&width=32",
   },
 ]
