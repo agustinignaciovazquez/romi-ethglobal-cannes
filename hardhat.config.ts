@@ -19,6 +19,11 @@ const config: HardhatUserConfig = {
       url: "http://127.0.0.1:8545",
       chainId: 31337,
     },
+    mainnet: {
+      url: process.env.MAINNET_RPC_URL || "https://mainnet.infura.io/v3/YOUR_PROJECT_ID",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 1,
+    },
     sepolia: {
       url: process.env.SEPOLIA_RPC_URL || "https://sepolia.infura.io/v3/YOUR_PROJECT_ID",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
