@@ -3,10 +3,6 @@ pragma solidity ^0.8.13;
 
 import {CREATE3} from "solmate/src/utils/CREATE3.sol";
 
-/// @title Factory for deploying contracts to deterministic addresses via CREATE3
-/// @author zefram.eth
-/// @notice Enables deploying contracts using CREATE3. Each deployer (msg.sender) has
-/// its own namespace for deployed addresses.
 contract RomiFactory {
     function deploy(
         bytes32 salt,
