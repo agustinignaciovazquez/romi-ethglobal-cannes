@@ -6,16 +6,20 @@ import { ArrowLeft, Save, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownSelect } from "@/components/dropdown-select"
 import { useWallet } from "@/contexts/wallet-context"
-import { usePrivy } from "@privy-io/react-auth"
+import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { tokens, chains } from "@/lib/data"
 import type { Token, Chain } from "@/types"
-import { personalSign, deploySmartWallet, addUserPreference, hasWalletSetup, getActivePreference } from "@/lib/utils"
+import { addUserPreference, hasWalletSetup, getActivePreference } from "@/lib/utils"
+import { configureSmartWallet, signSmartAccountConfig } from "../../lib/romi"
+import { useSigner } from "../../hooks/use-signer"
 
 export default function SettingsPage() {
   const { state, addPreference, connectWallet, setHasSetup } = useWallet()
   const { authenticated, user, ready } = usePrivy()
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const { wallets } = useWallets()
+  const { signer, isLoading: isSignerLoading, error: signerError } = useSigner(wallets?.[0])
 
   // Wait for Privy to be ready
   useEffect(() => {
@@ -85,29 +89,37 @@ export default function SettingsPage() {
   }
 
   const handleSave = async () => {
-    if (!selectedToken || !selectedChain || !user?.wallet?.address || !state.userWalletAddress) return
+    if (!selectedToken || !selectedChain || !user?.wallet?.address || !state.userWalletAddress ) return
+
+    const activePreference = getActivePreference(user?.wallet?.address)
+    if (!activePreference) {
+      return
+    }
 
     setIsSaving(true)
     try {
-      // Step 1: Personal sign for verification
-      const signature = await personalSign("Update Romi wallet preferences", state.userWalletAddress)
 
-      // Step 2: Deploy new smart wallet for this preference set
-      const { address, ensName } = await deploySmartWallet(state.userWalletAddress)
+      const config = {
+        token: selectedToken.contractAddress(selectedChain.chainId),
+        chainId: BigInt(selectedChain.chainId),
+        nonce: BigInt(0),
+      }
 
-      // Step 3: Create new preference with new smart wallet
+
+      const sig = await signSmartAccountConfig(signer, config, activePreference.smartWalletAddress)
+    
+
+      await configureSmartWallet(activePreference.smartWalletAddress, sig, config)
       const newPreference = addUserPreference(user.wallet.address, {
+        ...activePreference,
         selectedToken,
         selectedChain,
-        smartWalletAddress: address,
-        ensName,
-        setupSignature: signature,
       })
 
       // Step 4: Add preference to context
       addPreference(newPreference)
 
-      router.push("/deposit")
+      router.push("/dashboard")
     } catch (error) {
       console.error("Failed to save settings:", error)
     } finally {

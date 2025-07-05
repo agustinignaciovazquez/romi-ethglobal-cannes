@@ -46,6 +46,26 @@ export async function getSmartWalletAddress(salt: string): Promise<string> {
   return await factory.getDeployed(getDeployerAddress(), getSaltHash(salt))
 }
 
+export async function configureSmartWallet(address: string, signature: string, config: {
+  token: string
+  chainId: bigint
+  nonce: bigint
+}): Promise<void> {
+  await fetch('/api/configure', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      address,
+      config: {
+        token: config.token,
+        chainId: config.chainId.toString(),
+        nonce: config.nonce.toString(),
+      },
+      signature 
+    }),
+  })
+}
+
 export async function deploySmartWallet(salt: string, user: string, signature: string, config: {
   token: string
   chainId: bigint
