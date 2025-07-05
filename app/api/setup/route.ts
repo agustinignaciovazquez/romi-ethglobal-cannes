@@ -6,7 +6,7 @@ import Create3FactoryArtifact from '@/artifacts/contracts/romi/RomiFactory.sol/R
 import { chains } from '../../../lib/data'
 import { shouldAttemptENSRegistration, getChainName } from '../../../lib/chain-utils'
 
-const ROOT_DOMAIN = ".testoromi.eth"
+const ROOT_DOMAIN = ".toromi.eth"
 const PRIVATE_KEY = process.env.NEXT_PRIVATE_PK!
 const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS!
 

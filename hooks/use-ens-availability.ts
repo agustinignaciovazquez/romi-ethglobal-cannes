@@ -5,7 +5,7 @@ import { ethers } from "ethers"
 const L2_REGISTRY_ADDRESS = "0xcbd1662b5e606420e79f32ea26de40c16acaa881"
 
 // Root domain for ENS subdomains (Sepolia testnet)
-const ROOT_DOMAIN = "testoromi.eth"
+const ROOT_DOMAIN = "toromi.eth"
 
 // ENS Registry ABI - L2Registry is an ERC721 contract
 const ENS_REGISTRY_ABI = [
@@ -74,7 +74,7 @@ export function useEnsAvailability() {
             // Create contract instance
             const registryContract = new ethers.Contract(L2_REGISTRY_ADDRESS, ENS_REGISTRY_ABI, provider)
 
-            // Calculate the namehash for subdomain.testoromi.eth
+            // Calculate the namehash for subdomain.toromi.eth
             const fullName = `${subdomain}.${ROOT_DOMAIN}`
             const nameHash = ethers.namehash(fullName)
 
