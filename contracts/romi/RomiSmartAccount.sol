@@ -9,6 +9,24 @@ interface IERC20 {
     function approve(address spender, uint256 amount) external returns (bool);
 }
 
+interface IAggregationRouterV6 {
+    struct SwapDescription {
+        address srcToken;
+        address dstToken;
+        address srcReceiver;
+        address dstReceiver;
+        uint256 amount;
+        uint256 minReturnAmount;
+        uint256 flags;
+    }
+
+    function swap(
+        address executor,
+        SwapDescription calldata desc,
+        bytes calldata data
+    ) external payable returns (uint256 returnAmount, uint256 spentAmount);
+}
+
 contract RomiSmartAccount is Ownable, RomiEIP712 {
     using ECDSA for bytes32;
     struct Config {
@@ -54,10 +72,25 @@ contract RomiSmartAccount is Ownable, RomiEIP712 {
     function _verifySwapOutput(
         bytes calldata data,
         address expected
-    ) internal pure returns (bool) {
-        return
-            data.length >= 20 &&
-            bytes20(data[data.length - 20:]) == bytes20(expected);
+    ) public view returns (bool) {
+        // Confirm selector
+        bytes4 selector;
+        assembly {
+            selector := calldataload(data.offset)
+        }
+
+        require(
+            selector == IAggregationRouterV6.swap.selector,
+            "Wrong selector"
+        );
+
+        // Decode calldata
+        (, IAggregationRouterV6.SwapDescription memory desc, ) = abi.decode(
+            data[4:],
+            (address, IAggregationRouterV6.SwapDescription, bytes)
+        );
+
+        return desc.dstToken == expected && desc.dstReceiver == address(this);
     }
 
     function _getRevertMsg(

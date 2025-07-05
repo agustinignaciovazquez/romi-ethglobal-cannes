@@ -127,7 +127,7 @@ dotenv.config();
 async function main() {
   const provider = new ethers.JsonRpcProvider(process.env.BASE_RPC_URL!);
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
-  const smartAccountAddress = '0xaEDea71528659A16c2e49A90bB48Fcf2D7293500'
+  const smartAccountAddress = '0x72093e7D869d513eB537740fbE08C56a8E7f86b6'
   const chainId = Number(network.config.chainId!);
 
   const API_KEY = process.env.ONEINCH_API_KEY!;
@@ -140,9 +140,9 @@ async function main() {
   };
 
   const swapParams = {
-    src: "0x4200000000000000000000000000000000000006", 
-    dst: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC
-    amount: "1000000000000", // 
+    src: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", 
+    dst: "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c", // "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC
+    amount: "20000", // 
     from: smartAccountAddress,
     slippage: 1,
     disableEstimate: false,
@@ -174,22 +174,23 @@ async function main() {
     return tx;
   }
 
-  // console.log("🔄 Calling approveToken via smart account...");
-  // const approveTx = await buildApproveTx(swapParams.src, swapParams.amount);
-  // const approveAmount = BigInt(swapParams.amount);
+  console.log("🔄 Calling approveToken via smart account...");
+  const approveTx = await buildApproveTx(swapParams.src, swapParams.amount);
+  const approveAmount = BigInt(swapParams.amount);
 
-  // const approveTxResp = await smartAccount.approveToken(swapParams.src);
-  // console.log("✅ Approve tx sent:", approveTxResp.hash);
-  // await approveTxResp.wait();
+  const approveTxResp = await smartAccount.approveToken(swapParams.src);
+  console.log("✅ Approve tx sent:", approveTxResp.hash);
+  await approveTxResp.wait();
 
   async function buildTxForSwap(swapParams: any) {
     const url = apiRequestUrl("/swap", swapParams);
     const res = await fetch(url, headers);
-    const {tx} = await res.json();
+    const a = await res.json();
+    console.log(a);
     console.log("🔍 Response from 1inch:", res.status);
-    console.log("🔍 Response from 1inch:", tx);
-    if (!tx.data) throw new Error("Invalid swap transaction from 1inch");
-    return tx.data;
+    console.log("🔍 Response from 1inch:", a.tx);
+    if (!a.tx.data) throw new Error("Invalid swap transaction from 1inch");
+    return a.tx.data;
   }
 
   console.log("🔄 Fetching swap data from 1inch...");
