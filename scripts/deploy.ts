@@ -54,6 +54,19 @@ async function main() {
   // Check if factory has L2Registrar capability
   const hasRegistrar = await factory.hasL2Registrar();
   console.log("Factory has L2Registrar:", hasRegistrar);
+
+  // Final deployment summary
+  console.log("\n🎉 Deployment Summary:");
+  console.log(`Network: ${chainName} (Chain ID: ${chainId})`);
+  console.log(`Contract Address: ${address}`);
+  console.log(`ENS Registration: ${isBaseChain && hasRegistrar ? "✅ Enabled" : "❌ Disabled"}`);
+  if (isBaseChain && hasRegistrar) {
+    console.log("🚀 Ready for ENS subdomain registration!");
+  } else if (isBaseChain && !hasRegistrar) {
+    console.log("⚠️ Base chain detected but no L2Registrar configured");
+  } else {
+    console.log("ℹ️ Non-Base chain - regular deployment only");
+  }
 }
 
 main().catch((error) => {
