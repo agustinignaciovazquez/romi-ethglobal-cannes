@@ -15,39 +15,39 @@ Any changes you make to your deployed app will be automatically pushed to this r
 ### Prerequisites
 
 1. **Install dependencies:**
-   ```bash
+   \`\`\`bash
    pnpm install
-   ```
+   \`\`\`
 
 2. **Set up environment variables:**
-   ```bash
+   \`\`\`bash
    cp .env.example .env
-   ```
+   \`\`\`
    
    Edit `.env` and add your configuration:
-   ```bash
+   \`\`\`bash
    PRIVATE_KEY=your_private_key_without_0x_prefix
    ETHERSCAN_API_KEY=your_unified_etherscan_api_key_here
    BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
    SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
-   ```
+   \`\`\`
 
 3. **Compile contracts:**
-   ```bash
+   \`\`\`bash
    pnpm compile
-   ```
+   \`\`\`
 
 ### Deploy to Localhost (for testing)
 
 1. **Start a local Hardhat node:**
-   ```bash
+   \`\`\`bash
    pnpm node
-   ```
+   \`\`\`
    
 2. **Deploy to localhost (in a new terminal):**
-   ```bash
+   \`\`\`bash
    pnpm deploy:localhost
-   ```
+   \`\`\`
 
 ### Deploy to Base Sepolia
 
@@ -56,15 +56,15 @@ Any changes you make to your deployed app will be automatically pushed to this r
    - Your wallet needs at least 0.01 ETH for deployment
 
 2. **Deploy to Base Sepolia:**
-   ```bash
+   \`\`\`bash
    pnpm deploy:baseSepolia
-   ```
+   \`\`\`
 
 3. **Set up ENS L1 Resolver (Sepolia):**
    After deploying to Base Sepolia, you need to configure the L1 resolver on Sepolia:
-   ```bash
+   \`\`\`bash
    pnpm setup:ens
-   ```
+   \`\`\`
    
    You'll need:
    - Your ENS name (e.g., `yourname.eth`)

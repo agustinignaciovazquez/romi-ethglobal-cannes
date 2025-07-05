@@ -16,4 +16,4 @@ export function getDeployerAddress(): string {
     throw new Error("Deployer address is not set in environment variables")
   }
   return process.env.NEXT_PUBLIC_DEPLOYER_ADDRESS
-}   
+}

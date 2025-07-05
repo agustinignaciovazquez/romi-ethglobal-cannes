@@ -6,4 +6,3 @@ export async function useSigner(wallet: ConnectedWallet) {
     const provider = new ethers.BrowserProvider(ethereumProvider)
     return await provider.getSigner()
   }
-  

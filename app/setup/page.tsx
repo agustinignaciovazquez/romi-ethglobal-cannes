@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Loader2 } from "lucide-react"
+import { ArrowRight, Loader2, Check, X, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { DropdownSelect } from "@/components/dropdown-select"
 import { useWallet } from "@/contexts/wallet-context"
 import { usePrivy, useWallets } from "@privy-io/react-auth"
@@ -23,6 +24,12 @@ export default function SetupPage() {
   const { wallets } = useWallets()
   const { authenticated, user, ready } = usePrivy()
   const router = useRouter()
+  const signer = useSigner(wallets?.[0]) // Moved useSigner hook to top level
+
+  const [ensSubdomain, setEnsSubdomain] = useState("")
+  const [isCheckingEns, setIsCheckingEns] = useState(false)
+  const [ensAvailable, setEnsAvailable] = useState<boolean | null>(null)
+  const [ensError, setEnsError] = useState("")
 
   // Wait for Privy to be ready
   useEffect(() => {
@@ -56,18 +63,84 @@ export default function SetupPage() {
     }
   }, [authenticated, user?.wallet?.address, state.userWalletAddress, router, connectWallet])
 
+  // Debounced ENS availability check
+  const checkEnsAvailability = useCallback(async (subdomain: string) => {
+    if (!subdomain || subdomain.length < 3) {
+      setEnsAvailable(null)
+      setEnsError("")
+      return
+    }
+
+    // Basic validation
+    if (!/^[a-z0-9-]+$/.test(subdomain)) {
+      setEnsAvailable(false)
+      setEnsError("Only lowercase letters, numbers, and hyphens allowed")
+      return
+    }
+
+    if (subdomain.startsWith("-") || subdomain.endsWith("-")) {
+      setEnsAvailable(false)
+      setEnsError("Cannot start or end with a hyphen")
+      return
+    }
+
+    setIsCheckingEns(true)
+    setEnsError("")
+
+    try {
+      // Simulate API call - replace with actual ENS availability check
+      await new Promise((resolve) => setTimeout(resolve, 800))
+
+      // Mock availability logic (replace with real check)
+      const unavailableNames = ["admin", "test", "user", "wallet", "romi", "eth", "crypto"]
+      const isAvailable = !unavailableNames.includes(subdomain.toLowerCase()) && Math.random() > 0.3
+
+      setEnsAvailable(isAvailable)
+      if (!isAvailable) {
+        setEnsError("This subdomain is already taken")
+      }
+    } catch (error) {
+      setEnsError("Failed to check availability")
+      setEnsAvailable(false)
+    } finally {
+      setIsCheckingEns(false)
+    }
+  }, [])
+
+  // Debounce the ENS check
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (ensSubdomain) {
+        checkEnsAvailability(ensSubdomain)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [ensSubdomain, checkEnsAvailability])
+
+  // Generate random subdomain
+  const generateSubdomain = () => {
+    const adjectives = ["swift", "bright", "cool", "smart", "quick", "bold", "calm", "wise", "pure", "free"]
+    const nouns = ["fox", "wolf", "eagle", "lion", "bear", "hawk", "star", "moon", "sun", "wave"]
+    const numbers = Math.floor(Math.random() * 999) + 1
+
+    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)]
+    const noun = nouns[Math.floor(Math.random() * nouns.length)]
+
+    const generated = `${adjective}${noun}${numbers}`
+    setEnsSubdomain(generated)
+  }
+
   const handleContinue = async () => {
-    if (!selectedToken || !selectedChain || !state.userWalletAddress || !user?.wallet?.address) return
+    if (!selectedToken || !selectedChain || !state.userWalletAddress || !user?.wallet?.address || !signer) return
 
     setIsDeploying(true)
     try {
       const config = {
         token: selectedToken.contractAddress(selectedChain.chainId),
         chainId: BigInt(selectedChain.chainId),
-        nonce: BigInt(0)
+        nonce: BigInt(0),
       }
-
-      const signer = await useSigner(wallets?.[0])
 
       const salt = randomBytes(32).toString("hex") // Generate a random salt
       console.log("Generated salt:", salt)
@@ -99,7 +172,7 @@ export default function SetupPage() {
     }
   }
 
-  const canContinue = selectedToken && selectedChain && !isDeploying
+  const canContinue = selectedToken && selectedChain && ensSubdomain && ensAvailable && !isDeploying
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -132,6 +205,71 @@ export default function SetupPage() {
 
         {/* Form */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-6">
+          {/* ENS Subdomain Selection */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-semibold text-gray-900">Your romi address</label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={generateSubdomain}
+                className="text-xs text-blue-600 hover:text-blue-700 h-auto p-1"
+              >
+                <Sparkles className="w-3 h-3 mr-1" />
+                Generate
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="flex items-center">
+                <Input
+                  type="text"
+                  value={ensSubdomain}
+                  onChange={(e) => setEnsSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                  placeholder="yourname"
+                  className="rounded-r-none border-r-0 pr-2"
+                  maxLength={30}
+                />
+                <div className="bg-gray-50 border border-l-0 rounded-r-md px-3 py-2 text-sm text-gray-600 whitespace-nowrap">
+                  .toromi.eth
+                </div>
+              </div>
+
+              {/* Status indicator */}
+              {ensSubdomain && (
+                <div className="absolute right-20 top-1/2 transform -translate-y-1/2">
+                  {isCheckingEns ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                  ) : ensAvailable === true ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : ensAvailable === false ? (
+                    <X className="w-4 h-4 text-red-500" />
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            {/* Status message */}
+            {ensSubdomain && (
+              <div className="text-xs">
+                {isCheckingEns ? (
+                  <span className="text-gray-500">Checking availability...</span>
+                ) : ensError ? (
+                  <span className="text-red-500">{ensError}</span>
+                ) : ensAvailable === true ? (
+                  <span className="text-green-600">✓ {ensSubdomain}.toromi.eth is available!</span>
+                ) : ensAvailable === false && !ensError ? (
+                  <span className="text-red-500">This subdomain is already taken</span>
+                ) : ensSubdomain.length < 3 ? (
+                  <span className="text-gray-500">Minimum 3 characters required</span>
+                ) : null}
+              </div>
+            )}
+
+            <p className="text-xs text-gray-500">This will be your unique address where people can send you tokens</p>
+          </div>
+
           {/* Chain Selection */}
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-900">Destination Chain</label>
@@ -145,6 +283,7 @@ export default function SetupPage() {
             />
             <p className="text-xs text-gray-500">All tokens will be bridged to this chain automatically</p>
           </div>
+
           {/* Token Selection */}
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-900">Preferred Token</label>
@@ -177,7 +316,9 @@ export default function SetupPage() {
 
         {/* Info */}
         <div className="text-center text-xs text-gray-500 space-y-1">
-          <p>We'll create a smart wallet and assign you a romi.eth name</p>
+          <p>
+            We'll create your smart wallet at {ensSubdomain ? `${ensSubdomain}.toromi.eth` : "your-name.toromi.eth"}
+          </p>
           <p>This process may take a few moments</p>
         </div>
       </div>
