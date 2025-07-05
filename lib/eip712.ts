@@ -3,26 +3,22 @@ import { TypedDataDomain } from 'ethers'
 export async function signSmartAccountConfig(
   signer: any,
   config: {
-    preferredToken: string
-    destinationChainSelector: bigint
-    destinationWallet: string
+    token: string
+    chainId: bigint
     nonce: bigint
   },
   smartAccountAddress: string,
-  chainId: number
 ): Promise<string> {
   const domain: TypedDataDomain = {
     name: "SmartAccount",
     version: "1",
-    chainId,
     verifyingContract: smartAccountAddress,
   }
 
   const types = {
     Config: [
-      { name: "preferredToken", type: "address" },
-      { name: "destinationChainSelector", type: "uint64" },
-      { name: "destinationWallet", type: "address" },
+      { name: "token", type: "address" },
+      { name: "chainId", type: "uint256" },
       { name: "nonce", type: "uint256" },
     ],
   }

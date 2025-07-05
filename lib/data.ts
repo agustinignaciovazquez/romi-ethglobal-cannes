@@ -4,7 +4,7 @@ export const tokens: Token[] = [
   {
     name: "USDC",
     contractAddress: "0xa0b86a33e6ba3b1c4e6b0b8b8b8b8b8b8b8b8b8b",
-    imageUrl: "/placeholder.svg?height=32&width=32",
+    imageUrl: "/usdc.png",
   },
   {
     name: "USDT",

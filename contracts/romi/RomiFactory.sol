@@ -7,7 +7,7 @@ import {CREATE3} from "solmate/src/utils/CREATE3.sol";
 /// @author zefram.eth
 /// @notice Enables deploying contracts using CREATE3. Each deployer (msg.sender) has
 /// its own namespace for deployed addresses.
-contract Factory {
+contract RomiFactory {
     function deploy(
         bytes32 salt,
         bytes memory creationCode
