@@ -1,9 +1,8 @@
 // app/api/hello/route.ts
 import type { NextRequest } from 'next/server'
 import { ethers } from 'ethers'
-import SmartAccountArtifact from '@/artifacts/contracts/SmartAccount.sol/SmartAccount.json'
-import Create3FactoryArtifact from '@/artifacts/contracts/Factory.sol/Factory.json'
-import { SmartAccount } from '../../../typechain-types'
+import SmartAccountArtifact from '@/artifacts/contracts/romi/RomiSmartAccount.sol/RomiSmartAccount.json'
+import Create3FactoryArtifact from '@/artifacts/contracts/romi/RomiFactory.sol/RomiFactory.json'
 
 const PRIVATE_KEY = process.env.NEXT_PRIVATE_PK!
 const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS!
@@ -13,7 +12,7 @@ const chainId = process.env.NEXT_PUBLIC_CHAIN_ID || '31337'
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { address, salt } = body
+    const { address, salt, config, signature } = body
 
     if (!address || !salt) {
       return Response.json({ error: 'Missing fields' }, { status: 400 })
@@ -35,7 +34,7 @@ export async function POST(req: NextRequest) {
       wallet
     )
 
-    const creationTx = await SmartAccountFactory.getDeployTransaction(address, ethers.ZeroAddress)
+    const creationTx = await SmartAccountFactory.getDeployTransaction(address, 0)
     const bytecode = creationTx.data!
     const SALT = ethers.keccak256(ethers.toUtf8Bytes(salt))
 
@@ -44,11 +43,14 @@ export async function POST(req: NextRequest) {
 
     const deployedAddress = await factory.getDeployed(wallet.address, SALT)
 
-    const smartAccount = SmartAccountFactory.attach(deployedAddress) as unknown as SmartAccount
+    const smartAccount = new ethers.Contract(deployedAddress, SmartAccountArtifact.abi, wallet)
+
+    console.log('Smart Account deployed at:', config, signature)
+
+    smartAccount.updateConfigWithSig(config.token, BigInt(config.chainId), BigInt(config.nonce), signature)
 
     return Response.json({
       deployed: deployedAddress,
-      name: await smartAccount.walletName(),
       txHash: tx.hash,
       blockNumber: receipt.blockNumber,
     })

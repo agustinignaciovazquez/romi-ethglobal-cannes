@@ -5,10 +5,9 @@ pragma solidity ^0.8.20;
 
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {ShortStrings, ShortString} from "@openzeppelin/contracts/utils/ShortStrings.sol";
-import {IERC5267} from "@openzeppelin/contracts/interfaces/IERC5267.sol";
 
 // This file is modified from OpenZeppelin Contracts v5.3.0 to remove the chain id
-abstract contract RomiEIP712 is IERC5267 {
+abstract contract RomiEIP712 {
     using ShortStrings for *;
 
     bytes32 private constant TYPE_HASH =
@@ -71,7 +70,6 @@ abstract contract RomiEIP712 is IERC5267 {
                     TYPE_HASH,
                     _hashedName,
                     _hashedVersion,
-                    block.chainid,
                     address(this)
                 )
             );
@@ -97,34 +95,6 @@ abstract contract RomiEIP712 is IERC5267 {
     ) internal view virtual returns (bytes32) {
         return
             MessageHashUtils.toTypedDataHash(_domainSeparatorV4(), structHash);
-    }
-
-    /**
-     * @inheritdoc IERC5267
-     */
-    function eip712Domain()
-        public
-        view
-        virtual
-        returns (
-            bytes1 fields,
-            string memory name,
-            string memory version,
-            uint256 chainId,
-            address verifyingContract,
-            bytes32 salt,
-            uint256[] memory extensions
-        )
-    {
-        return (
-            hex"0f", // 01111
-            _EIP712Name(),
-            _EIP712Version(),
-            block.chainid,
-            address(this),
-            bytes32(0),
-            new uint256[](0)
-        );
     }
 
     /**

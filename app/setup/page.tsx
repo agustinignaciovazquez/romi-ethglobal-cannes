@@ -9,9 +9,10 @@ import { useWallet } from "@/contexts/wallet-context"
 import { usePrivy, useWallets } from "@privy-io/react-auth"
 import { tokens, chains } from "@/lib/data"
 import type { Token, Chain } from "@/types"
-import { deploySmartWallet, hasWalletSetup, addUserPreference } from "@/lib/utils"
-import { signSmartAccountConfig } from "../../lib/eip712"
-import { ethers } from "ethers"
+import { hasWalletSetup, addUserPreference } from "@/lib/utils"
+import { deploySmartWallet, getSmartWalletAddress, signSmartAccountConfig } from "../../lib/romi"
+import { useSigner } from "../../hooks/use-signer"
+import { randomBytes } from "crypto"
 
 export default function SetupPage() {
   const [selectedToken, setSelectedToken] = useState<Token | undefined>()
@@ -19,9 +20,9 @@ export default function SetupPage() {
   const [isDeploying, setIsDeploying] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const { state, addPreference, setHasSetup, connectWallet } = useWallet()
+  const { wallets } = useWallets()
   const { authenticated, user, ready } = usePrivy()
   const router = useRouter()
-  const { wallets } = useWallets()
 
   // Wait for Privy to be ready
   useEffect(() => {
@@ -61,24 +62,20 @@ export default function SetupPage() {
     setIsDeploying(true)
     try {
       const config = {
-        preferredToken: selectedToken.contractAddress,
-        destinationChainSelector: BigInt(selectedChain.chainId),
-        destinationWallet: state.userWalletAddress,
-        nonce: BigInt(Date.now()), // Use current timestamp as nonce
+        token: selectedToken.contractAddress,
+        chainId: BigInt(selectedChain.chainId),
+        nonce: BigInt(0)
       }
-      const wallet = wallets?.[0]
-      const ethereumProvider = await wallet.getEthereumProvider()
-      const provider = new ethers.BrowserProvider(ethereumProvider)
-      const signer = await provider.getSigner()
-  
-      const smartAccountAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 
-      // Step 1: Personal sign for verification
-      const sig = await signSmartAccountConfig(signer, config, smartAccountAddress, 31337)
+      const signer = await useSigner(wallets?.[0])
 
+      const salt = randomBytes(32).toString("hex") // Generate a random salt
+      console.log("Generated salt:", salt)
+
+      const sig = await signSmartAccountConfig(signer, config, await getSmartWalletAddress(salt))
 
       // Step 2: Deploy smart wallet and assign ENS
-      const { address, ensName } = await deploySmartWallet(state.userWalletAddress)
+      const { address, ensName } = await deploySmartWallet(salt, state.userWalletAddress, sig, config)
 
       // Step 3: Create new preference with all setup data
       const newPreference = addUserPreference(user.wallet.address, {

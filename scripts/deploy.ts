@@ -11,7 +11,7 @@ async function main() {
   const balance = await deployer.provider!.getBalance(deployer.address);
   console.log("Balance:", ethers.formatEther(balance), "ETH");
 
-  const Factory = await ethers.getContractFactory("Factory");
+  const Factory = await ethers.getContractFactory("RomiFactory");
   const factory = (await Factory.deploy()) as unknown as Factory;
 
   await factory.waitForDeployment();
