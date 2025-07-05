@@ -2,25 +2,25 @@ import { ethers } from "hardhat";
 import * as readline from "readline";
 
 async function main() {
-  // You'll need to replace this with your deployed contract address
-  const REGISTRAR_ADDRESS = process.env.REGISTRAR_ADDRESS;
-  
-  if (!REGISTRAR_ADDRESS) {
-    console.error("❌ Error: REGISTRAR_ADDRESS environment variable is required");
-    console.log("Usage: REGISTRAR_ADDRESS=0x... npx hardhat run scripts/transfer-ownership.ts");
-    process.exit(1);
-  }
+    // You'll need to replace this with your deployed contract address
+    const REGISTRAR_ADDRESS = process.env.REGISTRAR_ADDRESS;
 
-  // Get the current signer (should be the current owner)
-  const [signer] = await ethers.getSigners();
-  console.log(`📝 Current signer: ${signer.address}`);
-  
-  // Get the L2Registrar contract factory and attach to deployed contract
-  const L2Registrar = await ethers.getContractFactory("L2Registrar");
-  const registrar = L2Registrar.attach(REGISTRAR_ADDRESS);
-  
-  // Check if the signer is the current owner
-  const currentOwner = await registrar.owner();
+    if (!REGISTRAR_ADDRESS) {
+        console.error("❌ Error: REGISTRAR_ADDRESS environment variable is required");
+        console.log("Usage: REGISTRAR_ADDRESS=0x... npx hardhat run scripts/transfer-ownership.ts");
+        process.exit(1);
+    }
+
+    // Get the current signer (should be the current owner)
+    const [signer] = await ethers.getSigners();
+    console.log(`📝 Current signer: ${signer.address}`);
+
+    // Get the L2Registrar contract factory and attach to deployed contract
+    const L2Registrar = await ethers.getContractFactory("L2Registrar");
+    const registrar = L2Registrar.attach(REGISTRAR_ADDRESS);
+
+    // Check if the signer is the current owner
+    const currentOwner = await registrar.owner();
     console.log(`👑 Current owner: ${currentOwner}`);
 
     if (signer.address.toLowerCase() !== currentOwner.toLowerCase()) {

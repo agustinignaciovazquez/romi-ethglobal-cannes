@@ -18,7 +18,10 @@ contract L2Registrar {
     /// @notice Emitted when ownership is transferred
     /// @param previousOwner The address of the previous owner
     /// @param newOwner The address of the new owner
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /// @notice Reference to the target registry contract
     IL2Registry public immutable registry;
@@ -63,7 +66,10 @@ contract L2Registrar {
     /// @notice Registers a new name
     /// @param label The label to register (e.g. "name" for "name.eth")
     /// @param nameOwner The address that will own the name
-    function register(string calldata label, address nameOwner) external onlyOwner {
+    function register(
+        string calldata label,
+        address nameOwner
+    ) external onlyOwner {
         bytes32 node = _labelToNode(label);
         bytes memory addr = abi.encodePacked(nameOwner); // Convert address to bytes
 

@@ -323,46 +323,46 @@ async function removeRegistrarFromRegistry(registry: any, deployer: any) {
 async function showVerificationCommands(registry: any, deployer: any) {
     console.log("\n📋 Contract Verification Commands");
     console.log("=================================");
-    
+
     const networkName = network.name;
     const chainId = network.config.chainId;
-    
+
     console.log(`\n🌐 Current Network: ${networkName} (Chain ID: ${chainId})`);
     console.log(`📍 Registry Address: ${REGISTRY_ADDRESS}`);
-    
+
     // Get registry info for verification
     try {
         console.log("\n📊 Getting contract information...");
-        
+
         let baseNode = "N/A";
         let registryName = "N/A";
         let registrySymbol = "N/A";
-        
+
         try {
             baseNode = await registry.baseNode();
             console.log(`Base Node: ${baseNode}`);
         } catch (error) {
             console.log("⚠️ Could not get base node");
         }
-        
+
         try {
             registryName = await registry.name();
             console.log(`Registry Name: ${registryName}`);
         } catch (error) {
             console.log("⚠️ Could not get registry name");
         }
-        
+
         try {
             registrySymbol = await registry.symbol();
             console.log(`Registry Symbol: ${registrySymbol}`);
         } catch (error) {
             console.log("⚠️ Could not get registry symbol");
         }
-        
+
         // Generate verification commands based on network
         console.log("\n🔍 Verification Commands:");
         console.log("========================");
-        
+
         if (networkName === "baseSepolia") {
             console.log("\n📝 For Base Sepolia:");
             console.log("```bash");
@@ -393,33 +393,33 @@ async function showVerificationCommands(registry: any, deployer: any) {
             console.log(`pnpm hardhat verify --network ${networkName} ${REGISTRY_ADDRESS} "${baseNode}" "${registryName}" "${registrySymbol}"`);
             console.log("```");
         }
-        
+
         // Show L2Registrar verification if user wants
         const verifyRegistrar = await getUserInput("\nDo you want to see L2Registrar verification commands? (y/n): ");
-        
+
         if (verifyRegistrar.toLowerCase() === 'y' || verifyRegistrar.toLowerCase() === 'yes') {
             const registrarAddress = await getUserInput("Enter L2Registrar address: ");
-            
+
             console.log("\n🎫 L2Registrar Verification:");
             console.log("===========================");
             console.log("```bash");
             console.log(`pnpm hardhat verify --network ${networkName} ${registrarAddress} "${REGISTRY_ADDRESS}"`);
             console.log("```");
         }
-        
+
         console.log("\n📚 Additional Notes:");
         console.log("- Make sure you have ETHERSCAN_API_KEY set in your .env file");
         console.log("- Constructor parameters must match exactly what was used during deployment");
         console.log("- If verification fails, check that the contract source code is compiled with the same settings");
         console.log("- For custom networks, make sure etherscan config is properly set in hardhat.config.ts");
-        
+
         // Offer to run verification automatically
         const runVerification = await getUserInput("\nDo you want to run verification automatically? (y/n): ");
-        
+
         if (runVerification.toLowerCase() === 'y' || runVerification.toLowerCase() === 'yes') {
             await runAutomaticVerification(networkName, REGISTRY_ADDRESS, baseNode, registryName, registrySymbol);
         }
-        
+
     } catch (error) {
         console.error("❌ Failed to get contract information:", error);
         console.log("\n📝 Generic verification command:");
@@ -431,19 +431,19 @@ async function showVerificationCommands(registry: any, deployer: any) {
 
 async function runAutomaticVerification(networkName: string, contractAddress: string, baseNode: string, registryName: string, registrySymbol: string) {
     console.log("\n🔄 Running automatic verification...");
-    
+
     try {
         // First, ensure contracts are compiled
         console.log("1. Cleaning and recompiling contracts...");
-        
+
         const { spawn } = require('child_process');
-        
+
         // Clean first
         const cleanProcess = spawn('pnpm', ['hardhat', 'clean'], {
             stdio: 'inherit',
             cwd: process.cwd()
         });
-        
+
         await new Promise((resolve, reject) => {
             cleanProcess.on('close', (code: number) => {
                 if (code === 0) {
@@ -454,13 +454,13 @@ async function runAutomaticVerification(networkName: string, contractAddress: st
                 }
             });
         });
-        
+
         // Then compile
         const compileProcess = spawn('pnpm', ['hardhat', 'compile'], {
             stdio: 'inherit',
             cwd: process.cwd()
         });
-        
+
         await new Promise((resolve, reject) => {
             compileProcess.on('close', (code: number) => {
                 if (code === 0) {
@@ -471,10 +471,10 @@ async function runAutomaticVerification(networkName: string, contractAddress: st
                 }
             });
         });
-        
+
         // Now run verification
         console.log("2. Running verification...");
-        
+
         const verifyArgs = [
             'hardhat',
             'verify',
@@ -485,14 +485,14 @@ async function runAutomaticVerification(networkName: string, contractAddress: st
             registryName,
             registrySymbol
         ];
-        
+
         console.log(`Running: pnpm ${verifyArgs.join(' ')}`);
-        
+
         const verifyProcess = spawn('pnpm', verifyArgs, {
             stdio: 'inherit',
             cwd: process.cwd()
         });
-        
+
         await new Promise((resolve, reject) => {
             verifyProcess.on('close', (code: number) => {
                 if (code === 0) {
@@ -505,7 +505,7 @@ async function runAutomaticVerification(networkName: string, contractAddress: st
                 }
             });
         });
-        
+
     } catch (error) {
         console.error("❌ Automatic verification failed:", error);
         console.log("\nTry running the verification command manually:");
