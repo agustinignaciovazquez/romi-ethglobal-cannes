@@ -92,7 +92,7 @@ export default function DashboardPage() {
                     variant="outline"
                   >
                     <Plus className="w-5 h-5" />
-                    <span>Deposit Tokens</span>
+                    <span>Withdraw</span>
                   </Button>
                   <Button
                     onClick={() => router.push("/settings")}
@@ -102,42 +102,21 @@ export default function DashboardPage() {
                     <Wallet className="w-5 h-5" />
                     <span>Wallet Settings</span>
                   </Button>
+                  <Button
+                    className="w-full h-12 justify-start gap-3"
+                    variant="outline"
+                    disabled
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Invest (comming soon)</span>
+                  </Button>
                 </CardContent>
               </Card>
-
-              {/* Stats Cards */}
-              <div className="space-y-4">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">Total Transactions</p>
-                        <p className="text-2xl font-bold">{state.transactions.length}</p>
-                      </div>
-                      <TrendingUp className="w-8 h-8 text-blue-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">Successful Transfers</p>
-                        <p className="text-2xl font-bold">
-                          {state.transactions.filter((tx) => tx.status === "Successful").length}
-                        </p>
-                      </div>
-                      <ArrowUpRight className="w-8 h-8 text-green-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
             </div>
 
             {/* Right Column - Transaction History */}
             <div className="col-span-8">
-              <TxList transactions={state.transactions} />
+              <TxList />
             </div>
           </div>
         </div>
@@ -154,7 +133,7 @@ export default function DashboardPage() {
               onClick={() => router.push("/deposit")}
             >
               <Plus className="w-4 h-4" />
-              <span>Deposit</span>
+              <span>Widthraw</span>
             </Button>
             <Button
               variant="outline"
@@ -167,7 +146,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Transaction List */}
-          <TxList transactions={state.transactions} />
+          <TxList />
         </div>
 
         {/* Footer */}

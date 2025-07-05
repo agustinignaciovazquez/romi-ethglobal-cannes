@@ -1,14 +1,48 @@
 "use client"
-import { ArrowUpRight, Clock, CheckCircle, XCircle } from "lucide-react"
-import type { Transaction } from "@/types"
-import { formatDate } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { ArrowLeft, ArrowLeftRight, ArrowRight, ArrowUp, ArrowUpRight, CheckCircle } from "lucide-react"
+import { formatDate, getActivePreference } from "@/lib/utils"
+import { usePrivy } from "@privy-io/react-auth"
+import { useEffect, useState } from "react"
+import { set } from "react-hook-form"
 
-interface TxListProps {
-  transactions: Transaction[]
-}
 
-export function TxList({ transactions }: TxListProps) {
+export function TxList() {
+  const { user } = usePrivy()
+  const [smartAccount, setSmartAccount] = useState<string | null>(null)
+  const [transactions, setTransactions] = useState<any[] | null>(null)
+
+  useEffect(() => {
+    if(!user || !user.wallet || !user.wallet.address) { 
+      return
+    }
+    const activePreference = getActivePreference(user.wallet.address)
+    console.log("Active preference:", activePreference)
+    setSmartAccount(activePreference?.smartWalletAddress || null)
+  }, [user])
+
+  useEffect(() => {
+    if (!smartAccount) {
+      return
+    }
+    // Fetch transactions for the smart account
+    fetch(`/api/activity?address=${smartAccount}`)
+      .then((res) => res.json())
+      .then(({data}) => {
+        setTransactions(data)
+      })
+      .catch((error) => {
+        console.error("Error fetching transactions:", error)
+      })
+  }, [smartAccount])
+
+  if(transactions === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
   if (transactions.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
@@ -31,47 +65,33 @@ export function TxList({ transactions }: TxListProps) {
 
       <div className="divide-y divide-gray-100 max-h-[600px] lg:max-h-none overflow-y-auto">
         {transactions.map((tx) => (
-          <div key={tx.id} className="p-4 lg:p-6 hover:bg-gray-50 transition-colors">
+          <div key={tx.transaction_id} className="p-4 lg:p-6 hover:bg-gray-50 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 lg:gap-4">
                 {/* Status Icon */}
                 <div className="flex-shrink-0">
-                  {tx.status === "Successful" && <CheckCircle className="w-5 h-5 text-green-500" />}
-                  {tx.status === "Pending" && <Clock className="w-5 h-5 text-yellow-500" />}
-                  {tx.status === "Failed" && <XCircle className="w-5 h-5 text-red-500" />}
+                  <CheckCircle className="w-5 h-5 text-green-500" />
                 </div>
 
                 {/* Transaction Details */}
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm lg:text-base font-medium text-gray-900">
                     <span>
-                      {tx.amount} {tx.fromToken}
+                      {tx.from_value} {tx.from_token}
                     </span>
-                    <ArrowUpRight className="w-3 h-3 text-gray-400" />
-                    <span>{tx.toToken}</span>
+                    {tx.type === "swap" && <ArrowRight className="w-3 h-3 text-gray-400" />}
+                    {tx.type === "swap" && <span>{tx.to_value} {tx.to_token}</span>}
+                    {/* <span> ~ $32</span> */}
                   </div>
                   <div className="flex items-center gap-2 text-xs lg:text-sm text-gray-500">
-                    <span>{tx.fromChain}</span>
-                    <ArrowUpRight className="w-2 h-2" />
-                    <span>{tx.toChain}</span>
+                    <span>{tx.type.toUpperCase()}</span>
+                    {tx.type === "swap" && <ArrowLeftRight className="w-2 h-2" />}
+                    {tx.type === "send" && <ArrowRight className="w-2 h-2" />}
+                    {tx.type === "receive" && <ArrowLeft className="w-2 h-2" />}
                     <span>•</span>
-                    <span>{formatDate(tx.date)}</span>
+                    <span>{formatDate(tx.datetime)}</span>
                   </div>
                 </div>
-              </div>
-
-              {/* Action Button */}
-              <div className="flex items-center gap-2 lg:gap-3">
-                <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full ${tx.status === "Successful"
-                      ? "bg-green-100 text-green-700"
-                      : tx.status === "Pending"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                >
-                  {tx.status}
-                </span>
               </div>
             </div>
           </div>
@@ -80,3 +100,4 @@ export function TxList({ transactions }: TxListProps) {
     </div>
   )
 }
+

@@ -109,6 +109,7 @@ export default function SetupPage() {
       const newPreference = addUserPreference(user.wallet.address, {
         selectedToken,
         selectedChain,
+        selectedTokenAddress: selectedToken.contractAddress(selectedChain.chainId),
         smartWalletAddress: address,
         ensName,
         setupSignature: sig,

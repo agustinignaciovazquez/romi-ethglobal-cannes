@@ -113,6 +113,7 @@ export default function SettingsPage() {
       const newPreference = addUserPreference(user.wallet.address, {
         ...activePreference,
         selectedToken,
+        selectedTokenAddress: selectedToken.contractAddress(selectedChain.chainId),
         selectedChain,
       })
 

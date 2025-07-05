@@ -24,6 +24,7 @@ export interface Transaction {
 export interface UserPreferences {
   id: string // Unique identifier for this preference set
   selectedToken: Token
+  selectedTokenAddress: string
   selectedChain: Chain
   smartWalletAddress: string
   ensName: string
