@@ -5,6 +5,10 @@ import {RomiEIP712} from "./RomiEIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+interface IERC20 {
+    function approve(address spender, uint256 amount) external returns (bool);
+}
+
 contract RomiSmartAccount is Ownable, RomiEIP712 {
     using ECDSA for bytes32;
     struct Config {
@@ -15,16 +19,60 @@ contract RomiSmartAccount is Ownable, RomiEIP712 {
     Config public config;
     // Starts in 0 and increments with each config update
     uint256 public nextNonce;
+    address public oneInchRouter;
 
     bytes32 private constant CONFIG_TYPEHASH =
         keccak256("Config(address token,uint256 chainId,uint256 nonce)");
 
     constructor(
         address initialOwner,
-        uint256 initialNextNonce
+        uint256 initialNextNonce,
+        address oneInchRouterAddress
     ) Ownable(initialOwner) RomiEIP712("Romi Smart Account", "1") {
         nextNonce = initialNextNonce;
+        oneInchRouter = oneInchRouterAddress;
     }
+
+    // -------------------------------
+    // 1inch Swap Functions
+    // -------------------------------
+
+    function approveToken(address token) external {
+        require(
+            IERC20(token).approve(oneInchRouter, type(uint256).max),
+            "Approve failed"
+        );
+    }
+
+    function executeSwap(bytes calldata data) external {
+        require(_verifySwapOutput(data, config.token), "Invalid output token");
+
+        (bool success, bytes memory result) = oneInchRouter.call(data);
+        require(success, _getRevertMsg(result));
+    }
+
+    function _verifySwapOutput(
+        bytes calldata data,
+        address expected
+    ) internal pure returns (bool) {
+        return
+            data.length >= 20 &&
+            bytes20(data[data.length - 20:]) == bytes20(expected);
+    }
+
+    function _getRevertMsg(
+        bytes memory _returnData
+    ) internal pure returns (string memory) {
+        if (_returnData.length < 68) return "Call failed";
+        assembly {
+            _returnData := add(_returnData, 0x04)
+        }
+        return abi.decode(_returnData, (string));
+    }
+
+    // -------------------------------
+    // Romi Functions
+    // -------------------------------
 
     function updateConfigWithSig(
         address token,

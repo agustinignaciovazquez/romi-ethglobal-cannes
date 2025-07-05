@@ -18,7 +18,7 @@ export const tokens: Token[] = [
   },
   {
     name: "USDC Base",
-    contractAddress: "0xcBA01C75D035ca98FfC7710DAe710435CA53c03C",
+    contractAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     imageUrl: "/usdc.png",
   },
   {
@@ -46,14 +46,14 @@ export const chains: Chain[] = [
   // },
   {
     name: "Base",
-    chainId: 84532,
+    chainId: 8453,
     imageUrl: "/placeholder.svg?height=32&width=32",
   },
-  {
-    name: "Sepolia",
-    chainId: 11155111,
-    imageUrl: "/placeholder.svg?height=32&width=32",
-  },
+  // {
+  //   name: "Sepolia",
+  //   chainId: 11155111,
+  //   imageUrl: "/placeholder.svg?height=32&width=32",
+  // },
 ]
 
 export const mockTransactions: Transaction[] = [
