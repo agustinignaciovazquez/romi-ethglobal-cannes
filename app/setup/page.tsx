@@ -25,7 +25,7 @@ export default function SetupPage() {
   const { wallets } = useWallets()
   const { authenticated, user, ready } = usePrivy()
   const router = useRouter()
-  const signer = useSigner(wallets?.[0]) // Moved useSigner hook to top level
+  const { signer, isLoading: isSignerLoading, error: signerError } = useSigner(wallets?.[0])
   const { isChecking: isCheckingEns, isAvailable: ensAvailable, error: ensError, checkAvailability: checkEnsAvailability } = useEnsAvailability()
 
   const [ensSubdomain, setEnsSubdomain] = useState("")
@@ -127,7 +127,7 @@ export default function SetupPage() {
     }
   }
 
-  const canContinue = selectedToken && selectedChain && ensSubdomain && ensAvailable && !isDeploying
+  const canContinue = selectedToken && selectedChain && ensSubdomain && ensAvailable && !isDeploying && signer && !isSignerLoading
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -143,6 +143,26 @@ export default function SetupPage() {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  // Show error if signer failed to load
+  if (signerError) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
+        <div className="w-full max-w-md text-center space-y-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <X className="w-8 h-8 text-red-600" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-gray-900">Wallet Connection Error</h1>
+            <p className="text-gray-600">{signerError}</p>
+          </div>
+          <Button onClick={() => router.push("/connect")} className="w-full">
+            Try Again
+          </Button>
+        </div>
       </div>
     )
   }
