@@ -1,6 +1,7 @@
 import { ethers, network } from "hardhat";
 import { RomiSmartAccount } from "../typechain-types";
 import { Contract } from "ethers";
+import { chains } from "../lib/data";
 
 async function main() {
     while(true) {
@@ -23,10 +24,10 @@ async function processSmartAccount(smartAccount: string, chain: string) {
     const smartAccountContract = smartAccountContractFactory.attach(smartAccount) as RomiSmartAccount;
     const config = await smartAccountContract.config();
     const selectedToken = config[0];
-    const chainId = config[1];
+    const selectedChainId = config[1];
     console.log(`Smart Account Config for ${smartAccount}:`, {
         selectedToken,
-        chainId: chainId.toString(),
+        chainId: selectedChainId.toString(),
     });
 
     for (const token of tokens) {
@@ -34,10 +35,11 @@ async function processSmartAccount(smartAccount: string, chain: string) {
             const amount = token.amount
             if(token.contract.toLowerCase() !== selectedToken.toLowerCase()) {
                 await approve(smartAccountContract, token.contract, amount, '0x111111125421cA6dc452d289314280a0f8842A65');
-                await swap(smartAccountContract, token.contract, selectedToken, chainId.toString(), amount);
-            } else {
-              await approve(smartAccountContract, token.contract, amount, '0x881e3A65B4d4a04dD529061dd0071cf975F58bCD');
-              bridge(smartAccountContract);
+                await swap(smartAccountContract, token.contract, selectedToken, token.chainId, amount);
+            } else if(selectedChainId !== token.chainId) {
+              const router = chains.find((c: any) => c.chainId === Number(selectedChainId))?.chainLinkRouter;
+              await approve(smartAccountContract, token.contract, amount, router!);
+              bridge(smartAccountContract, token.chainId.toString(), selectedChainId.toString());
             }
         } catch (error) {
             console.error(`Error processing token ${token.contract} for smart account ${smartAccount}:`);
@@ -56,7 +58,7 @@ async function getTokens(address: string, chain: string) {
         method: 'GET',
         headers: {
             Accept: 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJLTVNFUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODc3MTYwMzgsImp0aSI6IjQyMWVmMDIwLWFiYjYtNDEyMi1hMjFhLTcwOGJjOWE3MTJiZSIsImlhdCI6MTc1MTcxNjAzOCwiaXNzIjoiZGZ1c2UuaW8iLCJzdWIiOiIwbW9kdTdmNTUyMTRlYTViNzY3OGUiLCJ2IjoxLCJha2kiOiJhZWRmMjk0MGQ1ZDhjOTU3NWM4NjRkYzVhOTJiMzE0MTdlY2UzNmI1MzVlOGRiMWE2YjVmODU3MzFjZTY0NWMxIiwidWlkIjoiMG1vZHU3ZjU1MjE0ZWE1Yjc2NzhlIn0.CbtoA-dagXibGBAtVgGnnbEF8XwSUxRXTE3Xpxd-K9tjVJXd9id8mfXOT3zbHVgW0mSRSfgGK5HT2rfhxEVTdw',
+            Authorization: `Bearer ${process.env.TOKEN_API}`,
         },
     }
 
@@ -148,6 +150,21 @@ export async function approve(smartAccount: RomiSmartAccount, srcToken: string, 
     }
   }
 
-  export function bridge(smartAccount: RomiSmartAccount) {
-    smartAccount.bridge("4949039107694359620", {value: ethers.parseEther("0.0003")})
+  export function bridge(smartAccount: RomiSmartAccount, srcChain: string, dstChain: string) {
+    let selector = ''
+    const base = '8453'
+    const arbitrum = '42161'
+    const optimism = '10'
+
+    if(dstChain === arbitrum) {
+      selector = '4949039107694359620'
+    }
+    if(dstChain === optimism) {
+      selector = '3734403246176062136'
+    }
+    if(dstChain === base) {
+      selector = '15971525489660198786'
+    } 
+
+    smartAccount.bridge(selector, {value: ethers.parseEther("0.0003")})
   }

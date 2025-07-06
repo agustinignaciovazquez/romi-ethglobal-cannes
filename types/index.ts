@@ -8,6 +8,7 @@ export interface Chain {
   name: string
   chainId: number
   imageUrl: string
+  chainLinkRouter: string
 }
 
 export interface Transaction {
