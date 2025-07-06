@@ -81,6 +81,11 @@ export function TxList() {
                     </span>
                     {tx.type === "swap" && <ArrowRight className="w-3 h-3 text-gray-400" />}
                     {tx.type === "swap" && <span>{tx.to_value} {tx.to_token}</span>}
+                    <img
+                  src={tx.chain_id === "optimism" ? "/blockchains/optimism.svg?height=32&width=32" : "/blockchains/base.svg?height=32&width=32"}
+                  alt={tx.chain_id}
+                  className="w-6 h-6 rounded-full"
+                />
                     {/* <span> ~ $32</span> */}
                   </div>
                   <div className="flex items-center gap-2 text-xs lg:text-sm text-gray-500">

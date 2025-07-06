@@ -1,4 +1,3 @@
-// app/api/activity/route.ts
 import { NextRequest } from 'next/server'
 
 const CHAINS = [
@@ -6,115 +5,140 @@ const CHAINS = [
   'optimism'
 ]
 
-const API_URL = 'https://token-api.thegraph.com/transfers/evm'
-const API_KEY = process.env.NEXT_PRIVATE_TOKEN_API
+const API_KEY = process.env.ALCHEMY_API_KEY
+const BASE_URLS: Record<string, string> = {
+  base: `https://base-mainnet.g.alchemy.com/v2/${API_KEY}`,
+  optimism: `https://opt-mainnet.g.alchemy.com/v2/${API_KEY}`
+}
 
 async function getTransfers(address: string, chain: string) {
-    console.log(`Fetching transfers for address: ${address} on chain: ${chain}`)
-    const headers = {
-      Accept: 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
-    }
-  
-    const [fromRes, toRes] = await Promise.all([
-      fetch(`${API_URL}?network_id=${chain}&from=${address}&orderBy=timestamp&orderDirection=desc&limit=20`, { headers }),
-      fetch(`${API_URL}?network_id=${chain}&to=${address}&orderBy=timestamp&orderDirection=desc&limit=20`, { headers }),
-    ])
-  
-    const [fromData, toData] = await Promise.all([fromRes.json(), toRes.json()])
-  
-    return [...fromData.data, ...toData.data]
-  }
-  
-  export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url)
-    const address = searchParams.get('address')?.toLowerCase()
-  
-    if (!address) {
-      return new Response(JSON.stringify({ error: 'Missing address param' }), { status: 400 })
-    }
-  
-    const allTransfers = (await Promise.all(
-      CHAINS.map((chain) => getTransfers(address, chain))
-    )).flat().filter((tx) => tx.symbol !== 'ETH')
+  console.log(`Fetching transfers for address: ${address} on chain: ${chain}`)
 
-    console.log(allTransfers)
-  
-    const groupedByTx = new Map()
-  
-    for (const tx of allTransfers) {
-      const key = `${tx.block_num}_${tx.transaction_id}`
-      if (!groupedByTx.has(key)) groupedByTx.set(key, [])
-      groupedByTx.get(key).push(tx)
-    }
-  
-    const result = []
-    for (const group of groupedByTx.values()) {
-      const hasFrom = group.some((t: { from: string }) => t.from === address)
-      const hasTo = group.some((t: { to: string }) => t.to === address)
-  
-      if (group.length > 1 && hasFrom && hasTo) {
-        const fromToken = group.find((t: { from: string }) => t.from === address)
-        const toToken = group.find((t: { to: string }) => t.to === address)
-  
-        if (fromToken && toToken) {
-          result.push({
-            type: 'swap',
-            timestamp: fromToken.timestamp,
-            datetime: fromToken.datetime,
-            transaction_id: fromToken.transaction_id,
-            block_num: fromToken.block_num,
-            from_token: fromToken.symbol,
-            to_token: toToken.symbol,
-            from_value: formatUnitsToString(fromToken.value, fromToken.decimals),
-            to_value: formatUnitsToString(toToken.value, toToken.decimals),
-          })
-          continue
-        }
+  const baseUrl = BASE_URLS[chain]
+  const headers = { 'Content-Type': 'application/json' }
+
+  const bodyFrom = {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'alchemy_getAssetTransfers',
+    params: [
+      {
+        fromAddress: address,
+        category: ['erc20'],
+        withMetadata: true,
+        excludeZeroValue: true,
+        maxCount: '0x14' // 20 in hex
       }
-  
-      for (const t of group) {
-        if (t.from === address) {
-          result.push({
-            type: 'send',
-            ...t,
-            from_token: t.symbol,
-            from_value: formatUnitsToString(t.value, t.decimals),
-          })
-        } else if (t.to === address) {
-          result.push({
-            type: 'receive',
-            ...t,
-            from_token: t.symbol,
-            from_value: formatUnitsToString(t.value, t.decimals),
-          })
-        }
-      }
-    }
-  
-    result.sort((a, b) => b.timestamp - a.timestamp)
-  
-    return new Response(JSON.stringify({ data: result }), {
-      headers: { 'Content-Type': 'application/json' },
-    })
+    ]
   }
 
-  export function formatUnitsToString(value: string | bigint | number, decimals: number): string {
-    const valueStr = String(value);
-  
-    // If value is already a float string, return it as-is
-    if (valueStr.includes('.')) return valueStr;
-  
-    const len = valueStr.length;
-  
-    if (decimals === 0) return valueStr;
-  
-    if (len <= decimals) {
-      const padded = valueStr.padStart(decimals, '0');
-      return `0.${padded}`;
-    }
-  
-    const intPart = valueStr.slice(0, len - decimals);
-    const fracPart = valueStr.slice(len - decimals);
-    return `${intPart}.${fracPart}`;
+  const bodyTo = {
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'alchemy_getAssetTransfers',
+    params: [
+      {
+        toAddress: address,
+        category: ['erc20'],
+        withMetadata: true,
+        excludeZeroValue: true,
+        maxCount: '0x14' // 20 in hex
+      }
+    ]
   }
+
+  const [resFrom, resTo] = await Promise.all([
+    fetch(baseUrl, { method: 'POST', headers, body: JSON.stringify(bodyFrom) }),
+    fetch(baseUrl, { method: 'POST', headers, body: JSON.stringify(bodyTo) })
+  ])
+
+  const [dataFrom, dataTo] = await Promise.all([resFrom.json(), resTo.json()])
+  return [...(dataFrom.result.transfers || []), ...(dataTo.result.transfers || [])]
+}
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const address = searchParams.get('address')?.toLowerCase()
+
+  if (!address) {
+    return new Response(JSON.stringify({ error: 'Missing address param' }), { status: 400 })
+  }
+
+  const allTransfers = (
+    await Promise.all(
+      CHAINS.map(async (chain) => {
+        const transfers = await getTransfers(address, chain)
+        return transfers.map((t: any) => ({ ...t, chain_id: chain }))
+      })
+    )
+  ).flat()
+  const groupedByTx = new Map()
+
+  for (const tx of allTransfers) {
+    const key = `${tx.blockNum}_${tx.hash}`
+    if (!groupedByTx.has(key)) groupedByTx.set(key, [])
+    groupedByTx.get(key).push(tx)
+  }
+
+  const result = []
+  for (const group of groupedByTx.values()) {
+    const hasFrom = group.some((t: any) => t.from.toLowerCase() === address)
+    const hasTo = group.some((t: any) => t.to.toLowerCase() === address)
+
+    if (group.length > 1 && hasFrom && hasTo) {
+      const fromToken = group.find((t: any) => t.from.toLowerCase() === address)
+      const toToken = group.find((t: any) => t.to.toLowerCase() === address)
+
+      if (fromToken && toToken) {
+        result.push({
+          type: 'swap',
+          timestamp: Date.parse(fromToken.metadata.blockTimestamp) / 1000,
+          datetime: fromToken.metadata.blockTimestamp,
+          transaction_id: fromToken.hash,
+          block_num: parseInt(fromToken.blockNum),
+          from_token: fromToken.asset,
+          to_token: toToken.asset,
+          from_value: fromToken.value,
+          to_value: toToken.value,
+          chain_id: fromToken.chain_id,
+        })
+        continue
+      }
+    }
+
+    for (const t of group) {
+      const isSender = t.from.toLowerCase() === address
+      const isReceiver = t.to.toLowerCase() === address
+
+      if (isSender) {
+        result.push({
+          type: 'send',
+          timestamp: Date.parse(t.metadata.blockTimestamp) / 1000,
+          datetime: t.metadata.blockTimestamp,
+          transaction_id: t.hash,
+          block_num: parseInt(t.blockNum),
+          from_token: t.asset,
+          from_value: t.value,
+          chain_id: t.chain_id,
+        })
+      } else if (isReceiver) {
+        result.push({
+          type: 'receive',
+          timestamp: Date.parse(t.metadata.blockTimestamp) / 1000,
+          datetime: t.metadata.blockTimestamp,
+          transaction_id: t.hash,
+          block_num: parseInt(t.blockNum),
+          from_token: t.asset,
+          from_value: t.value,
+          chain_id: t.chain_id,
+        })
+      }
+    }
+  }
+
+  result.sort((a, b) => b.timestamp - a.timestamp)
+
+  return new Response(JSON.stringify({ data: result }), {
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
