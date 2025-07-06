@@ -36,7 +36,9 @@ async function getTransfers(address: string, chain: string) {
   
     const allTransfers = (await Promise.all(
       CHAINS.map((chain) => getTransfers(address, chain))
-    )).flat()
+    )).flat().filter((tx) => tx.symbol !== 'ETH')
+
+    console.log(allTransfers)
   
     const groupedByTx = new Map()
   

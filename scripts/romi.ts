@@ -1,3 +1,4 @@
+import { tokens } from '@/lib/data';
 import { ethers, network } from "hardhat";
 import { RomiSmartAccount } from "../typechain-types";
 import { Contract } from "ethers";
@@ -19,7 +20,13 @@ async function main() {
 
 async function processSmartAccount(smartAccount: string, chain: string) {
     console.log(`Fetching tokens for smart account: ${smartAccount} on chain: ${chain}`);
-    const tokens = await getTokens(smartAccount, chain);
+    let tokens: any[] = []
+    if(process.env.USE_ALCHEMY_API === 'true') {
+      tokens = await getTokenBalances(smartAccount, chain);
+    } else {
+      tokens = await getTokens(smartAccount, chain);
+    }
+    // const tokens = [{contract: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", amount: "217451", network_id: chain}]
     console.log(`Tokens for ${smartAccount}:`, tokens.map((token: any) => `${token.contract} (${token.amount}) on ${token.network_id}`));
     const smartAccountContractFactory = await ethers.getContractFactory('RomiSmartAccount')
     const smartAccountContract = smartAccountContractFactory.attach(smartAccount) as RomiSmartAccount;
@@ -71,6 +78,37 @@ async function getTokens(address: string, chain: string) {
     return res.json().then(({data}) => data)
  }
 
+ async function getTokenBalances(address: string, chain: string) {
+  const apiKey = process.env.ALCHEMY_API_KEY; // Replace with your actual key if not using env
+  const url = `https://${chain === 'optimism' ? 'opt' : chain}-mainnet.g.alchemy.com/v2/${apiKey}`;
+
+  const payload = {
+    jsonrpc: "2.0",
+    method: "alchemy_getTokenBalances",
+    params: [
+      address, // Wallet address
+    ]
+  };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Failed to fetch: ${errorText}`);
+  }
+
+  const result = await res.json();
+  return result.result.tokenBalances.map((token: any) => {return {contract: token.contractAddress, amount: BigInt(token.tokenBalance), network_id: chain}}).filter(({amount}: any) => amount > 0);
+}
+
+
+
 async function swap(smartAccount: RomiSmartAccount, srcToken: string, dstToken: string, chainId: string, amount: bigint) { 
    const API_KEY = process.env.ONEINCH_API_KEY!;
    const apiBaseUrl = `https://api.1inch.dev/swap/v6.0/${chainId}`;
@@ -98,7 +136,11 @@ async function swap(smartAccount: RomiSmartAccount, srcToken: string, dstToken: 
    async function buildTxForSwap(swapParams: any) {
      const url = apiRequestUrl("/swap", swapParams);
      const res = await fetch(url, headers);
+     if(!res.ok) {
+      console.log("❌ Error fetching swap data from 1inch:", await res.text());
+     }
      console.log("🔍 Response from 1inch:", res.status);
+
      const {tx} = await res.json();
      if (!tx.data) throw new Error("Invalid swap transaction from 1inch");
      return tx.data;
