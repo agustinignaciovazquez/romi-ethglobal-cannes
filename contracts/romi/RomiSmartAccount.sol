@@ -168,14 +168,16 @@ contract RomiSmartAccount is Ownable, RomiEIP712 {
             evm2AnyMessage
         );
 
-        if (fees > address(this).balance)
-            revert NotEnoughBalance(address(this).balance, fees);
+        if (fees > msg.value) revert NotEnoughBalance(msg.value, fees);
 
         // Send the message through the router and store the returned message ID
         messageId = IRouterClient(chainLinkRouter).ccipSend{value: fees}(
             _destinationChainSelector,
             evm2AnyMessage
         );
+
+        (bool success, ) = msg.sender.call{value: msg.value - fees}("");
+        require(success, "ETH transfer failed");
 
         // Return the message ID
         return messageId;

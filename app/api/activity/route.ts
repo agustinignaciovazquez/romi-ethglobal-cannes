@@ -3,12 +3,14 @@ import { NextRequest } from 'next/server'
 
 const CHAINS = [
   'base',
+  'optimism'
 ]
 
 const API_URL = 'https://token-api.thegraph.com/transfers/evm'
 const API_KEY = process.env.NEXT_PRIVATE_TOKEN_API
 
 async function getTransfers(address: string, chain: string) {
+    console.log(`Fetching transfers for address: ${address} on chain: ${chain}`)
     const headers = {
       Accept: 'application/json',
       Authorization: `Bearer ${API_KEY}`,

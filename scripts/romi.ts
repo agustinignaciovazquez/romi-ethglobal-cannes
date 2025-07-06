@@ -5,11 +5,11 @@ import { chains } from "../lib/data";
 
 async function main() {
     while(true) {
-        const smartAccounts = ['0xEfe4512185B31A7A674Ee3EEF7453b7FAC6243A9'.toLowerCase()]
+        const smartAccounts = ['0x576c377ce21925b12f29f3bc815260bbdd92a740'.toLowerCase()]
 
         for (const SmartAccount of smartAccounts) {
             console.log(`Processing smart account: ${SmartAccount}`);
-            await processSmartAccount(SmartAccount, 'base');
+            await processSmartAccount(SmartAccount, network.config.chainId === 10 ? 'optimism' : 'base');
         }
     
         // sleep for 20 seconds
@@ -18,8 +18,9 @@ async function main() {
 }
 
 async function processSmartAccount(smartAccount: string, chain: string) {
+    console.log(`Fetching tokens for smart account: ${smartAccount} on chain: ${chain}`);
     const tokens = await getTokens(smartAccount, chain);
-    console.log(`Tokens for ${smartAccount}:`, tokens.map((token: any) => `${token.contract} (${token.amount})`));
+    console.log(`Tokens for ${smartAccount}:`, tokens.map((token: any) => `${token.contract} (${token.amount}) on ${token.network_id}`));
     const smartAccountContractFactory = await ethers.getContractFactory('RomiSmartAccount')
     const smartAccountContract = smartAccountContractFactory.attach(smartAccount) as RomiSmartAccount;
     const config = await smartAccountContract.config();
@@ -31,18 +32,22 @@ async function processSmartAccount(smartAccount: string, chain: string) {
     });
 
     for (const token of tokens) {
+      if(token.contract === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'){
+        continue
+      }
         try{
             const amount = token.amount
+            const chainId = token.network_id === 'optimism' ? '10' : '8453'
             if(token.contract.toLowerCase() !== selectedToken.toLowerCase()) {
                 await approve(smartAccountContract, token.contract, amount, '0x111111125421cA6dc452d289314280a0f8842A65');
-                await swap(smartAccountContract, token.contract, selectedToken, token.chainId, amount);
-            } else if(selectedChainId !== token.chainId) {
-              const router = chains.find((c: any) => c.chainId === Number(selectedChainId))?.chainLinkRouter;
+                await swap(smartAccountContract, token.contract, selectedToken, chainId, amount);
+            } else if(selectedChainId.toString() !== chainId) {
+              const router = chains.find((c: any) => c.chainId === Number(chainId))?.chainLinkRouter;
               await approve(smartAccountContract, token.contract, amount, router!);
-              bridge(smartAccountContract, token.chainId.toString(), selectedChainId.toString());
+              bridge(smartAccountContract, chainId, selectedChainId.toString());
             }
         } catch (error) {
-            console.error(`Error processing token ${token.contract} for smart account ${smartAccount}:`);
+            console.error(`Error processing token ${token.contract} for smart account ${smartAccount}:`, error);
         }    
     }
 }
@@ -93,8 +98,8 @@ async function swap(smartAccount: RomiSmartAccount, srcToken: string, dstToken: 
    async function buildTxForSwap(swapParams: any) {
      const url = apiRequestUrl("/swap", swapParams);
      const res = await fetch(url, headers);
-     const {tx} = await res.json();
      console.log("🔍 Response from 1inch:", res.status);
+     const {tx} = await res.json();
      if (!tx.data) throw new Error("Invalid swap transaction from 1inch");
      return tx.data;
    }
@@ -166,5 +171,5 @@ export async function approve(smartAccount: RomiSmartAccount, srcToken: string, 
       selector = '15971525489660198786'
     } 
 
-    smartAccount.bridge(selector, {value: ethers.parseEther("0.0003")})
+    smartAccount.bridge(selector, {value: ethers.parseEther("0.0002")})
   }

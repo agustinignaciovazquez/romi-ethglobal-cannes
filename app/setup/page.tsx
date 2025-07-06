@@ -111,7 +111,7 @@ export default function SetupPage() {
         selectedChain,
         selectedTokenAddress: selectedToken.contractAddress(selectedChain.chainId),
         smartWalletAddress: address,
-        ensName,
+        ensName: ensName ?? "",
         setupSignature: sig,
       })
 
