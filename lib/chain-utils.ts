@@ -48,5 +48,5 @@ export function getChainName(chainId: number): string {
  * @returns true if ENS registration should be attempted
  */
 export function shouldAttemptENSRegistration(chainId: number, ensName?: string): boolean {
-    return !!(ensName && isBaseChain(chainId));
+    return false
 }

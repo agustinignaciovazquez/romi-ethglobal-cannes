@@ -4,7 +4,7 @@ import { Contract } from "ethers";
 
 async function main() {
     while(true) {
-        const smartAccounts = ['0xe4ff44a4CAFc21D07630754D218CE2ab7fEe74C8'.toLowerCase()]
+        const smartAccounts = ['0xEfe4512185B31A7A674Ee3EEF7453b7FAC6243A9'.toLowerCase()]
 
         for (const SmartAccount of smartAccounts) {
             console.log(`Processing smart account: ${SmartAccount}`);
@@ -18,7 +18,7 @@ async function main() {
 
 async function processSmartAccount(smartAccount: string, chain: string) {
     const tokens = await getTokens(smartAccount, chain);
-    console.log(`Tokens for ${smartAccount}:`, tokens);
+    console.log(`Tokens for ${smartAccount}:`, tokens.map((token: any) => `${token.contract} (${token.amount})`));
     const smartAccountContractFactory = await ethers.getContractFactory('RomiSmartAccount')
     const smartAccountContract = smartAccountContractFactory.attach(smartAccount) as RomiSmartAccount;
     const config = await smartAccountContract.config();
@@ -33,10 +33,11 @@ async function processSmartAccount(smartAccount: string, chain: string) {
         try{
             const amount = token.amount
             if(token.contract.toLowerCase() !== selectedToken.toLowerCase()) {
-                await approve(smartAccountContract, token.contract, amount);
+                await approve(smartAccountContract, token.contract, amount, '0x111111125421cA6dc452d289314280a0f8842A65');
                 await swap(smartAccountContract, token.contract, selectedToken, chainId.toString(), amount);
             } else {
-                console.log(`Bridgin ${token.contract} as it is the selected token.`);
+              await approve(smartAccountContract, token.contract, amount, '0x881e3A65B4d4a04dD529061dd0071cf975F58bCD');
+              bridge(smartAccountContract);
             }
         } catch (error) {
             console.error(`Error processing token ${token.contract} for smart account ${smartAccount}:`);
@@ -106,12 +107,12 @@ async function swap(smartAccount: RomiSmartAccount, srcToken: string, dstToken: 
    console.log("🎉 Swap complete!");
 }
 
-export async function approve(smartAccount: RomiSmartAccount, srcToken: string, amount: bigint) {
-    if(await checkTokenAllowance(srcToken, await smartAccount.getAddress(), '0x111111125421cA6dc452d289314280a0f8842A65', amount)) {
+export async function approve(smartAccount: RomiSmartAccount, srcToken: string, amount: bigint, spender: string) {
+    if(await checkTokenAllowance(srcToken, await smartAccount.getAddress(), spender, amount)) {
         return
     }
     console.log("🔄 Approving token...");
-    const approveTx = await smartAccount.approveToken(srcToken);
+    const approveTx = await smartAccount.approveToken(srcToken, spender);
     console.log("✅ Approval tx sent:", approveTx.hash);
     await approveTx.wait();
     console.log("🎉 Approval complete!");
@@ -145,4 +146,8 @@ export async function approve(smartAccount: RomiSmartAccount, srcToken: string, 
       console.log("❌ Allowance is insufficient.");
       return false;
     }
+  }
+
+  export function bridge(smartAccount: RomiSmartAccount) {
+    smartAccount.bridge("4949039107694359620", {value: ethers.parseEther("0.0003")})
   }
