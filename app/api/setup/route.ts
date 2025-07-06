@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         wallet
       )
       // 0x111111125421cA6dc452d289314280a0f8842A65 -> 1inch router address
-      const creationTx = await SmartAccountFactory.getDeployTransaction(address, 0, '0x111111125421cA6dc452d289314280a0f8842A65')
+      const creationTx = await SmartAccountFactory.getDeployTransaction(address, 0, '0x111111125421cA6dc452d289314280a0f8842A65', '0x881e3A65B4d4a04dD529061dd0071cf975F58bCD')
       const bytecode = creationTx.data!
       const SALT = ethers.keccak256(ethers.toUtf8Bytes(salt))
 
