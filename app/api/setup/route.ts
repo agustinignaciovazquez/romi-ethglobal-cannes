@@ -9,6 +9,13 @@ import { shouldAttemptENSRegistration, getChainName } from '../../../lib/chain-u
 const ROOT_DOMAIN = ".toromi.eth"
 const PRIVATE_KEY = process.env.NEXT_PRIVATE_PK!
 const FACTORY_ADDRESS = process.env.NEXT_PUBLIC_FACTORY_ADDRESS!
+const L2_REGISTRAR_ADDRESS = process.env.NEXT_PUBLIC_L2_REGISTRAR_ADDRESS
+
+// L2Registrar ABI - only the functions we need
+const L2_REGISTRAR_ABI = [
+  "function register(string calldata label, address nameOwner) external",
+  "function available(string calldata label) external view returns (bool)"
+];
 
 export async function POST(req: NextRequest) {
   try {
@@ -46,37 +53,39 @@ export async function POST(req: NextRequest) {
       // Check if this chain supports ENS registration and user requested it
       const shouldRegisterENS = shouldAttemptENSRegistration(chain.chainId, ensName);
 
-      let tx;
-      if (shouldRegisterENS) {
-        // Check if factory has L2Registrar before attempting ENS registration
+      // Always deploy using the regular deploy function (no more deployWithENS)
+      const tx = await factory.deploy(SALT, bytecode);
+      await tx.wait();
+
+      if (!deployedAddress) {
+        deployedAddress = await factory.getDeployed(wallet.address, SALT);
+      }
+
+      // Handle ENS registration separately if supported and requested
+      if (shouldRegisterENS && L2_REGISTRAR_ADDRESS) {
         try {
-          const hasRegistrar = await factory.hasL2Registrar();
-          if (hasRegistrar) {
-            // Deploy with ENS registration on Base chains
-            tx = await factory.deployWithENS(SALT, bytecode, ensName, address);
+          const l2Registrar = new ethers.Contract(L2_REGISTRAR_ADDRESS, L2_REGISTRAR_ABI, wallet);
+
+          // Check if the ENS name is available
+          const isAvailable = await l2Registrar.available(ensName);
+
+          if (isAvailable) {
+            // Register the ENS name to point to the deployed smart account
+            const registerTx = await l2Registrar.register(ensName, deployedAddress);
+            await registerTx.wait();
             registeredENS = ensName;
-            console.log(`Smart Account deployed with ENS name: ${ensName} on ${getChainName(chain.chainId)}`);
+            console.log(`ENS name ${ensName} registered for address ${deployedAddress} on ${getChainName(chain.chainId)}`);
           } else {
-            console.log(`Warning: Factory has no L2Registrar on ${getChainName(chain.chainId)}, deploying without ENS`);
-            tx = await factory.deploy(SALT, bytecode);
+            console.log(`ENS name ${ensName} is not available on ${getChainName(chain.chainId)}`);
           }
         } catch (error) {
           console.error(`ENS registration failed on ${getChainName(chain.chainId)}:`, error);
-          // Fall back to regular deployment
-          tx = await factory.deploy(SALT, bytecode);
+          // Continue without ENS registration
         }
-      } else {
-        // Deploy without ENS registration
-        tx = await factory.deploy(SALT, bytecode);
-        if (ensName) {
-          console.log(`ENS name ${ensName} requested but ${getChainName(chain.chainId)} doesn't support ENS registration`);
-        }
-      }
-
-      await tx.wait()
-
-      if (!deployedAddress) {
-        deployedAddress = await factory.getDeployed(wallet.address, SALT)
+      } else if (ensName && shouldRegisterENS) {
+        console.log(`ENS registration requested but L2_REGISTRAR_ADDRESS not configured for ${getChainName(chain.chainId)}`);
+      } else if (ensName) {
+        console.log(`ENS name ${ensName} requested but ${getChainName(chain.chainId)} doesn't support ENS registration`);
       }
 
       const smartAccount = new ethers.Contract(deployedAddress, SmartAccountArtifact.abi, wallet)

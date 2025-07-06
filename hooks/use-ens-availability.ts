@@ -2,7 +2,7 @@ import { useState, useCallback } from "react"
 import { ethers } from "ethers"
 
 // Hardcoded L2 Registry address on Base
-const L2_REGISTRY_ADDRESS = "0xcbd1662b5e606420e79f32ea26de40c16acaa881"
+const L2_REGISTRY_ADDRESS = "0xf9d7abb40ff5943b0bb53d584e72dafc7a5c79db"
 
 // Root domain for ENS subdomains (Sepolia testnet)
 const ROOT_DOMAIN = "toromi.eth"

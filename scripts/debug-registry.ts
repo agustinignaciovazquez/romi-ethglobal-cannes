@@ -7,7 +7,7 @@ dotenv.config();
 
 // Your specific registry address
 //const REGISTRY_ADDRESS = "0xcbd1662b5e606420e79f32ea26de40c16acaa881"; //Base Sepolia L2Registry address
-const REGISTRY_ADDRESS = "0x7b923b2948f41993c194ec8f761fb2ee294a55fa";
+const REGISTRY_ADDRESS = "0xf9d7abb40ff5943b0bb53d584e72dafc7a5c79db";
 // Function to get user input from stdin
 function getUserInput(question: string): Promise<string> {
     const rl = readline.createInterface({

@@ -40,16 +40,11 @@ contract RomiFactory {
         bytes32 salt,
         bytes memory creationCode,
         address user
-    )
-        external
-        payable
-        onlyOwner
-        returns (address deployed)
-    {
+    ) external payable onlyOwner returns (address deployed) {
         // Deploy the smart account
         salt = keccak256(abi.encodePacked(msg.sender, salt));
         deployed = CREATE3.deploy(salt, creationCode, msg.value);
-        
+
         emit SmartAccountDeployed(deployed, user);
     }
 
