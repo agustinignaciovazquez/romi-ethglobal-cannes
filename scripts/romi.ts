@@ -1,12 +1,11 @@
-import { tokens } from '@/lib/data';
 import { ethers, network } from "hardhat";
 import { RomiSmartAccount } from "../typechain-types";
 import { Contract } from "ethers";
-import { chains } from "../lib/data";
+import { chains, tokens } from "../lib/data";
 
 async function main() {
     while(true) {
-        const smartAccounts = ['0x576c377ce21925b12f29f3bc815260bbdd92a740'.toLowerCase()]
+        const smartAccounts = ['0x4Fa01238Bb4BEb3d8AAA44ed84AE7813f41C8160'.toLowerCase()]
 
         for (const SmartAccount of smartAccounts) {
             console.log(`Processing smart account: ${SmartAccount}`);
@@ -45,9 +44,10 @@ async function processSmartAccount(smartAccount: string, chain: string) {
         try{
             const amount = token.amount
             const chainId = token.network_id === 'optimism' ? '10' : '8453'
-            if(token.contract.toLowerCase() !== selectedToken.toLowerCase()) {
+            const toTokenAddress = resolveTokenAddress(selectedToken, Number(chainId));
+            if(token.contract.toLowerCase() !== toTokenAddress.toLowerCase()) {
                 await approve(smartAccountContract, token.contract, amount, '0x111111125421cA6dc452d289314280a0f8842A65');
-                await swap(smartAccountContract, token.contract, selectedToken, chainId, amount);
+                await swap(smartAccountContract, token.contract, toTokenAddress, chainId, amount);
             } else if(selectedChainId.toString() !== chainId) {
               const router = chains.find((c: any) => c.chainId === Number(chainId))?.chainLinkRouter;
               await approve(smartAccountContract, token.contract, amount, router!);
@@ -57,6 +57,17 @@ async function processSmartAccount(smartAccount: string, chain: string) {
             console.error(`Error processing token ${token.contract} for smart account ${smartAccount}:`, error);
         }    
     }
+}
+
+function resolveTokenAddress(selectedAddress: string, targetChainId: number): string {
+  const tokenEntry = tokens.find(t =>
+    [42161, 10, undefined].some(id =>
+      t.contractAddress(id)?.toLowerCase() === selectedAddress.toLowerCase()
+    )
+  );
+
+  if (!tokenEntry) throw new Error(`Unknown token address: ${selectedAddress}`);
+  return tokenEntry.contractAddress(targetChainId);
 }
 
 
@@ -213,5 +224,5 @@ export async function approve(smartAccount: RomiSmartAccount, srcToken: string, 
       selector = '15971525489660198786'
     } 
 
-    smartAccount.bridge(selector, {value: ethers.parseEther("0.0002")})
+    smartAccount.bridge(selector, {value: ethers.parseEther("0.0003"), gasLimit: 1000000 })
   }

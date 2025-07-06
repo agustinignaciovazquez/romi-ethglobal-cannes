@@ -71,16 +71,13 @@ contract RomiSmartAccount is Ownable, RomiEIP712 {
     }
 
     function executeSwap(bytes calldata data) external {
-        require(_verifySwapOutput(data, config.token), "Invalid output token");
+        require(_verifySwapOutput(data), "Invalid output token");
 
         (bool success, bytes memory result) = oneInchRouter.call(data);
         require(success, _getRevertMsg(result));
     }
 
-    function _verifySwapOutput(
-        bytes calldata data,
-        address expected
-    ) public view returns (bool) {
+    function _verifySwapOutput(bytes calldata data) public view returns (bool) {
         // Confirm selector
         bytes4 selector;
         assembly {
@@ -98,7 +95,9 @@ contract RomiSmartAccount is Ownable, RomiEIP712 {
             (address, IAggregationRouterV6.SwapDescription, bytes)
         );
 
-        return desc.dstToken == expected && desc.dstReceiver == address(this);
+        return
+            desc.dstToken == getEquivalentToken(block.chainid) &&
+            desc.dstReceiver == address(this);
     }
 
     function _getRevertMsg(
@@ -153,12 +152,13 @@ contract RomiSmartAccount is Ownable, RomiEIP712 {
     function bridge(
         uint64 _destinationChainSelector
     ) external payable returns (bytes32 messageId) {
+        address token = getEquivalentToken(block.chainid);
         // Create an EVM2AnyMessage struct in memory with necessary information for sending a cross-chain message
         // address(0) means fees are paid in native gas
         Client.EVM2AnyMessage memory evm2AnyMessage = _buildCCIPMessage(
             address(this),
-            config.token,
-            IERC20(config.token).balanceOf(address(this)),
+            token,
+            IERC20(token).balanceOf(address(this)),
             address(0)
         );
 
@@ -186,6 +186,42 @@ contract RomiSmartAccount is Ownable, RomiEIP712 {
     // -------------------------------
     // Romi Functions
     // -------------------------------
+
+    function getEquivalentToken(
+        uint256 targetChainId
+    ) public view returns (address) {
+        // If target is same as config.chainId, return the configured token
+        if (targetChainId == config.chainId) {
+            return config.token;
+        }
+
+        // USDC mapping between Base and Optimism
+        if (
+            (config.token == 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 &&
+                config.chainId == 8453 &&
+                targetChainId == 10)
+        ) {
+            return 0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85;
+        }
+
+        if (
+            (config.token == 0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85 &&
+                config.chainId == 10 &&
+                targetChainId == 8453)
+        ) {
+            return 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
+        }
+
+        // WETH is the same on both Base and Optimism
+        if (
+            config.token == 0x4200000000000000000000000000000000000006 &&
+            (targetChainId == 8453 || targetChainId == 10)
+        ) {
+            return 0x4200000000000000000000000000000000000006;
+        }
+
+        revert("Unsupported token or chainId");
+    }
 
     function updateConfigWithSig(
         address token,

@@ -40,9 +40,9 @@ export function getSaltHash(salt: string) {
   return ethers.keccak256(ethers.toUtf8Bytes(salt))
 }
 
-export async function getSmartWalletAddress(chainId: number, salt: string): Promise<string> {
+export async function getSmartWalletAddress(salt: string): Promise<string> {
   try {
-    const provider = getRomiDefaultProvider(chainId);
+    const provider = getRomiDefaultProvider();
     const factoryAddress = getFactoryAddress();
     const factory = new ethers.Contract(factoryAddress, Create3FactoryArtifact.abi, provider);
 

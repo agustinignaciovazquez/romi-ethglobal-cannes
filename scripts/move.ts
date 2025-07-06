@@ -3,8 +3,8 @@ import { RomiSmartAccount } from "../typechain-types";
 
 async function main() {
     const RomiSmartAccountFactory = await ethers.getContractFactory('RomiSmartAccount');
-    const romiSmartAccount = RomiSmartAccountFactory.attach('0x587f384EE879A3d7BBe1dc4A635116932F68144B') as RomiSmartAccount;
-    romiSmartAccount.transferERC20("0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", "0xEfe4512185B31A7A674Ee3EEF7453b7FAC6243A9", "444729")
+    const romiSmartAccount = RomiSmartAccountFactory.attach('0x1e6C86bA7f116Fa7B67185A616B45543f80f0A49') as RomiSmartAccount;
+    romiSmartAccount.transferERC20("0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", "0x4Fa01238Bb4BEb3d8AAA44ed84AE7813f41C8160", "1208167")
 }
 
 void main().catch((error) => {

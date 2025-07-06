@@ -100,7 +100,7 @@ export default function SetupPage() {
       const salt = randomBytes(32).toString("hex") // Generate a random salt
       console.log("Generated salt:", salt)
 
-      const sig = await signSmartAccountConfig(signer, config, await getSmartWalletAddress(config.chainId, salt))
+      const sig = await signSmartAccountConfig(signer, config, await getSmartWalletAddress(salt))
 
       // Step 2: Deploy smart wallet and assign ENS (pass the user's chosen ENS subdomain)
       const { address, ensName } = await deploySmartWallet(salt, state.userWalletAddress, sig, config, ensSubdomain)
@@ -128,7 +128,7 @@ export default function SetupPage() {
     }
   }
 
-  const canContinue = selectedToken && selectedChain && ensSubdomain && ensAvailable && !isDeploying && signer && !isSignerLoading
+  const canContinue = selectedToken && selectedChain && !isDeploying && signer && !isSignerLoading
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -181,71 +181,6 @@ export default function SetupPage() {
 
         {/* Form */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-6">
-          {/* ENS Subdomain Selection */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-semibold text-gray-900">Your romi address</label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={generateSubdomain}
-                className="text-xs text-blue-600 hover:text-blue-700 h-auto p-1"
-              >
-                <Sparkles className="w-3 h-3 mr-1" />
-                Generate
-              </Button>
-            </div>
-
-            <div className="relative">
-              <div className="flex items-center">
-                <Input
-                  type="text"
-                  value={ensSubdomain}
-                  onChange={(e) => setEnsSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                  placeholder="yourname"
-                  className="rounded-r-none border-r-0 pr-2"
-                  maxLength={30}
-                />
-                <div className="bg-gray-50 border border-l-0 rounded-r-md px-3 py-2 text-sm text-gray-600 whitespace-nowrap">
-                  .toromi.eth
-                </div>
-              </div>
-
-              {/* Status indicator */}
-              {ensSubdomain && (
-                <div className="absolute right-20 top-1/2 transform -translate-y-1/2">
-                  {isCheckingEns ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                  ) : ensAvailable === true ? (
-                    <Check className="w-4 h-4 text-green-500" />
-                  ) : ensAvailable === false ? (
-                    <X className="w-4 h-4 text-red-500" />
-                  ) : null}
-                </div>
-              )}
-            </div>
-
-            {/* Status message */}
-            {ensSubdomain && (
-              <div className="text-xs">
-                {isCheckingEns ? (
-                  <span className="text-gray-500">Checking availability...</span>
-                ) : ensError ? (
-                  <span className="text-red-500">{ensError}</span>
-                ) : ensAvailable === true ? (
-                  <span className="text-green-600">✓ {ensSubdomain}.toromi.eth is available!</span>
-                ) : ensAvailable === false && !ensError ? (
-                  <span className="text-red-500">This subdomain is already taken</span>
-                ) : ensSubdomain.length < 3 ? (
-                  <span className="text-gray-500">Minimum 3 characters required</span>
-                ) : null}
-              </div>
-            )}
-
-            <p className="text-xs text-gray-500">This will be your unique address where people can send you tokens</p>
-          </div>
-
           {/* Chain Selection */}
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-gray-900">Destination Chain</label>
