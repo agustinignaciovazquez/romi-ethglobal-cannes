@@ -5,7 +5,7 @@ import { chains, tokens } from "../lib/data";
 
 async function main() {
     while(true) {
-        const smartAccounts = ['0x4Fa01238Bb4BEb3d8AAA44ed84AE7813f41C8160'.toLowerCase()]
+        const smartAccounts = ['0x3cf65b770D6e01A328e973C0f17688fffCA9df28'.toLowerCase()]
 
         for (const SmartAccount of smartAccounts) {
             console.log(`Processing smart account: ${SmartAccount}`);

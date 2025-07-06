@@ -21,10 +21,10 @@ export function WalletHeader() {
 
   const handleLogout = async () => {
     // Clear wallet-specific setup data if user is connected
-    if (user?.wallet?.address) {
-      const walletAddress = user.wallet.address.toLowerCase()
-      clearWalletSetupData(walletAddress)
-    }
+    // if (user?.wallet?.address) {
+    //   const walletAddress = user.wallet.address.toLowerCase()
+    //   clearWalletSetupData(walletAddress)
+    // }
     logout()
     await privyLogout()
     router.push("/connect")
