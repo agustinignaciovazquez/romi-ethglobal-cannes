@@ -32,12 +32,12 @@ export const tokens: Token[] = [
 ]
 
 export const chains: Chain[] = [
-  {
-    name: "Arbitrum",
-    chainId: 42161,
-    imageUrl: "/blockchains/arbitrum.svg?height=32&width=32",
-    chainLinkRouter: "0x141fa059441E0ca23ce184B6A78bafD2A517DdE8",
-  },
+  // {
+  //   name: "Arbitrum",
+  //   chainId: 42161,
+  //   imageUrl: "/blockchains/arbitrum.svg?height=32&width=32",
+  //   chainLinkRouter: "0x141fa059441E0ca23ce184B6A78bafD2A517DdE8",
+  // },
   {
     name: "Optimism",
     chainId: 10,
